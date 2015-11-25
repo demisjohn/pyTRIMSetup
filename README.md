@@ -1,5 +1,6 @@
 
-== pyTRIMSetup ==
+pyTRIMSetup
+===========
 
 A Python module for generating a TRIM.IN file for running TRIM.exe by James Zeigler (see srim.org).
 SRIM/TRIM is an ion-implantation monte-carlo simulator.
@@ -12,12 +13,12 @@ Nov. 2015, Demis D. John
 ---------------------------------------------------------------
 Example:
 
-*import the pyTRIMSetup module*
+**import the pyTRIMSetup module**
 
     from pyTRIMSetup import *   
 
 
-*Setup target materials*
+**Setup target materials**
 A Material object is created as so:
   NewMat = Material(  [ListOfElements],  [ListOfMoleRatios],  Density)
 
@@ -26,21 +27,29 @@ A Material object is created as so:
     AlSb = Material(['Al','Sb'], [0.5,0.5],   1.97)
 
 
-*Setup Target layer Stack*
+**Setup Target layer Stack**
   The Stack's Layers are created from top-to-bottom, by adding materials together, 
   while providing a thickness (Angstroms) for each layer.
 
     target = Stack(  GaSb(1500) + AlAs(750) + GaSb(2000) + AlSb(2500) )     # top to bottom
 
+Since the underlying structure of these commands uses python Lists, we can do some interesting operations with them, like so:
 
-*Setup ion to implant*
+    # One period of AlAs & GaAs is multipled to repeat it:
+    repeatingpart = 3 * (  AlGaAs(150) + GaAs(110)  )   
+    
+    # Insert this into the main Stack:  
+    target = Stack(  GaAs(1500) + repeatingpart + AlAs(2500)  )     # top to bottom
+
+
+**Setup ion to implant**
 The Ion is defined as
   Ion(  ElementAbbrv, Energy_keV, Angle_degrees )
   
     target.implant(    Ion('H', 10, 7)    )     # Ion(ElementAbbrv, Energy_keV, Angle_degrees)
 
 
-*Setup a dictionary of simulator options:*
+**Setup a dictionary of simulator options:**
   These will eventually be made as default options, but right now you need to specify each one.
 
     options = {}
@@ -56,7 +65,7 @@ The Ion is defined as
 
 
 
-*Generate the output TRIM.IN file* with specified path/filename, passing the above options dictionary.
+**Generate the output TRIM.IN file** with specified path/filename, passing the above options dictionary.
 
     target.output('TestOutput.in', options=options, overwrite=True)
 

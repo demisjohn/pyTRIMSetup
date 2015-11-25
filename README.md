@@ -11,14 +11,15 @@ This bypasses the SRIM.exe graphical interface, and allows for repeating loops o
 Nov. 2015, Demis D. John
 
 ---------------------------------------------------------------
-Example:
+## Example:
 
-**import the pyTRIMSetup module**
+###import the pyTRIMSetup module
 
     from pyTRIMSetup import *   
 
 
-**Setup target materials**
+
+###Setup target materials
 
 A Material object is created as so:
 
@@ -29,7 +30,8 @@ A Material object is created as so:
     AlSb = Material(['Al','Sb'], [0.5,0.5],   1.97)
 
 
-**Setup Target layer Stack**
+
+###Setup Target layer Stack
 
   The Stack's Layers are created from top-to-bottom, by adding materials together, 
   
@@ -46,7 +48,8 @@ Since the underlying structure of these commands uses python Lists, we can do so
     target = Stack(  GaAs(1500) + repeatingpart + AlAs(2500)  )     # top to bottom
 
 
-**Setup ion to implant**
+
+###Setup ion to implant
 
 The Ion to implant is defined as
 
@@ -55,7 +58,8 @@ The Ion to implant is defined as
     target.implant(    Ion('H', 10, 7)    )     # Ion(ElementAbbrv, Energy_keV, Angle_degrees)
 
 
-**Setup a dictionary of simulator options:**
+
+###Setup a dictionary of simulator options:
 
   These will eventually be made as default options, but right now you need to specify each one.
 
@@ -72,7 +76,8 @@ The Ion to implant is defined as
 
 
 
-**Generate the output TRIM.IN file** with specified path/filename, passing the above options dictionary.
+###Generate the output TRIM.IN file
+ with specified path/filename, passing the above options dictionary.
 
     target.output('TestOutput.in', options=options, overwrite=True)
 

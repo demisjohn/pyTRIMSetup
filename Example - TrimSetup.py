@@ -68,6 +68,10 @@ GaAs = Material(['Ga','As'], [0.5,0.5],     5.320)
 AlGaAs = Material(['Al','Ga','As'], [98,02,100],   3.717)   # Mole-ratios will be normalized automatically
 AlAs = Material(['Al','As'],  [50,50],      3.752)
 
+# You can add custom elements that aren't yet included in AtomicInfo.py, as so:
+X = Element('X', atnum=10, mass=9.01, surface_binding=10.2, binding=22, displacement=11)
+GaX = Material( [ 'Ga', X  ], [0.5,0.5], 7.26 )     # note the lack of quotes'' around X - it is an Element object!
+
 '''
 Setup Target layer Stack
 
@@ -110,7 +114,7 @@ options['PlotExtents'] = (0,0)      # Xmin, Xmax = 0,0 for automatic
 '''
 Generate the output TRIM.IN file with specified path/filename, passing the above options dictionary.
 '''
-target.output('TestOutput.in', options=options, overwrite=True)
+target.output('ExampleOutput.in', options=options, overwrite=True)
 
 '''
 The generated file can now be copied to TRIM.IN in the SRIM/TRIM directory.

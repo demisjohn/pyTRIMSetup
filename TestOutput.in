@@ -6,33 +6,41 @@ Cascades(1=No;2=Full;3=Sputt;4-5=Ions;6-7=Neutrons), Random Number Seed, Reminde
 Diskfiles (0=no,1=yes): Ranges, Backscatt, Transmit, Sputtered, Collisions(1=Ion;2=Ion+Recoils), Special EXYZ.txt file
         0    0    0    0    0    0    
 Target material : Number of Elements & Layers
-"Testing the script"    8    4
+"Testing the script with AlGaAs"    14    6
 PlotType (0-5); Plot Depths: Xmin, Xmax(Ang.) [=0 0 for Viewing Full Target]
     5    0    0    
 Target Elements:    Z   Mass(amu)
 Atom 1 = Ga =      31.000000  69.720000
-Atom 2 = Sb =      51.000000  121.750000
+Atom 2 = As =      33.000000  74.922000
 Atom 3 = Al =      13.000000  26.982000
-Atom 4 = As =      33.000000  74.922000
-Atom 5 = Ga =      31.000000  69.720000
-Atom 6 = Sb =      51.000000  121.750000
-Atom 7 = Al =      13.000000  26.982000
-Atom 8 = Sb =      51.000000  121.750000
+Atom 4 = Ga =      31.000000  69.720000
+Atom 5 = As =      33.000000  74.922000
+Atom 6 = Ga =      31.000000  69.720000
+Atom 7 = As =      33.000000  74.922000
+Atom 8 = Al =      13.000000  26.982000
+Atom 9 = Ga =      31.000000  69.720000
+Atom 10 = As =      33.000000  74.922000
+Atom 11 = Ga =      31.000000  69.720000
+Atom 12 = As =      33.000000  74.922000
+Atom 13 = Al =      13.000000  26.982000
+Atom 14 = As =      33.000000  74.922000
 Layer   Layer Name /               Width Density    Ga(31)  Sb(51)  In(49)  As(33)  Al(13)
 Numb.   Description                (Ang) (g/cm3)    Stoich  Stoich  Stoich  Stoich  Stoich
- 1    "GaSb"    1500    5.61    0.555555555556    0.444444444444    0    0    0    0    0    0    
- 2    "AlAs"    750    3.717    0    0    0.5    0.5    0    0    0    0    
- 3    "GaSb"    2000    5.61    0    0    0    0    0.555555555556    0.444444444444    0    0    
- 4    "AlSb"    2500    4.29    0    0    0    0    0    0    0.5    0.5    
+ 1    "GaAs"    1500    5.32    0.5    0.5    0    0    0    0    0    0    0    0    0    0    0    0    
+ 2    "AlGaAs"    150    3.717    0    0    0.49    0.01    0.5    0    0    0    0    0    0    0    0    0    
+ 3    "GaAs"    110    5.32    0    0    0    0    0    0.5    0.5    0    0    0    0    0    0    0    
+ 4    "AlGaAs"    150    3.717    0    0    0    0    0    0    0    0.49    0.01    0.5    0    0    0    0    
+ 5    "GaAs"    110    5.32    0    0    0    0    0    0    0    0    0    0    0.5    0.5    0    0    
+ 6    "AlAs"    2500    3.752    0    0    0    0    0    0    0    0    0    0    0    0    0.5    0.5    
 0  Target layer phases (0=Solid, 1=Gas)
- 0 0 0 0 
+ 0 0 0 0 0 0 
 Target Compound Corrections (Bragg)
- 1.0   1.0   1.0   1.0   
+ 1.0   1.0   1.0   1.0   1.0   1.0   
 Individual target atom displacement energies (eV)
-    25    25    25    25    25    25    25    25
+    25    25    25    25    25    25    25    25    25    25    25    25    25    25
 Individual target atom lattice binding energies (eV)
-    3    3    3    3    3    3    3    3
+    3    3    3    3    3    3    3    3    3    3    3    3    3    3
 Individual target atom surface binding energies (eV)
-    2.82    2.72    3.36    1.26    2.82    2.72    3.36    2.72
+    2.82    1.26    3.36    2.82    1.26    2.82    1.26    3.36    2.82    1.26    2.82    1.26    3.36    1.26
 Stopping Power Version (1=2011, 0=2011)
  0 

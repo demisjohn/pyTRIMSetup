@@ -3,7 +3,9 @@
 
 TRIM Setup Example Using pyTRIMSetup module, by Demis D. John, Nov. 2015
 
-A Python script to generate a TRIM.IN file for running TRIM.exe by James Zeigler (srim.org).
+A Python script to generate a TRIM.IN file for running the ion-implantation simulator 
+    TRIM.exe by James Zeigler (http://srim.org).
+Syntax based on CAMFR by Peter Beinstman (http://camfr.sourceforge.net)
 Nov. 2015, Demis D. John, Praevium Research Inc.
 
 ---------------------------------------------------------------
@@ -27,9 +29,9 @@ Run Configuration should either:
 # General Module setup etc.
 
 import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
-import scipy as sp  # SciPy (signal and image processing library)
-import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
-import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
+#import scipy as sp  # SciPy (signal and image processing library)
+#import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
+#import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
 
 ####################################################
 
@@ -40,24 +42,44 @@ from pyTRIMSetup import *   # import the pyTRIMSetup module
 
 print 'Running Script...'
 
+'''
+Get help on available arguments etc. by typing:
+    >>> help( Material )
+    >>> help( Ion )    
+    >>> help( Stack )
+    >>> import pyTRIMSetup as pt    # instead of importing `as *`
+    >>> help( pt )
+Or list all available functions/variables of an object:
+    >>> AlAs = Material(['Al','As'],  [50,50],      3.752)
+    >>> dir( AlAs )
+    >>> help( AlAs )        # same as `help( Material )`
+'''
+
+
 
 '''
 Setup target materials
 
 A Material object is created as so:
     NewMat = Material(  [ListOfElements],  [ListOfMoleRatios],  Density)
+    Defaults for optional args: CompoundCorrect=1, IsGas=False
 '''
-GaSb = Material(['Ga','Sb'], [0.5,0.5],   3.657)
-AlAs = Material(['Al','Ga','As'], [0.3,0.3,0.4],   2.758)
-AlSb = Material(['Al','Sb'], [0.5,0.5],   1.97)
+GaAs = Material(['Ga','As'], [0.5,0.5],     5.320)
+AlGaAs = Material(['Al','Ga','As'], [98,02,100],   3.717)   # Mole-ratios will be normalized automatically
+AlAs = Material(['Al','As'],  [50,50],      3.752)
 
 '''
 Setup Target layer Stack
 
 The Stack's Layers are created from top-to-bottom, by adding materials together, 
     while providing a thickness (Angstroms) for each layer.
+    The underlying structures are python Lists, so you can group(), multiply*, and add+ Layers accordingly:
 '''
-target = Stack(  GaSb(1500) + AlAs(750) + GaSb(2000) + AlSb(2500) )     # top to bottom
+# One period of AlAs & GaAs is multipled by two to repeat it twice:
+repeatingpart = 2 * (  AlGaAs(150) + GaAs(110)  )   
+# Insert this into the main Stack:  
+target = Stack(  GaAs(1500) + repeatingpart + AlAs(2500)  )     # top to bottom
+
 
 '''
 Setup ion to implant
@@ -71,9 +93,10 @@ target.implant(    Ion('H', 10, 7)    )     # Ion(ElementAbbrv, Energy_keV, Angl
 
 '''
 Setup a dictionary of simulator options:
+    Eventually these will have default values, but for now you need to specify all of them.
 '''
 options = {}
-options['Title'] = 'Testing the script' 
+options['Title'] = 'Testing the script with AlGaAs' 
 options['NumIons'] = 5000       # Max number of ions to simulate - simulator stops at this many ions
 options['AutoSaveNum'] = options['NumIons']     # Save the simulation at this interval
 options['SimType'] = 2      # 1=No;2=Full;3=Sputt;4-5=Ions;6-7=Neutrons.  See SRIM Menu for more info.

@@ -103,7 +103,11 @@ class Element(object):
         '''Returns atomic info for an element, specified by it's abbreviations eg. 'H', 'Si', 'C' etc.
         returns ElementObject, AtomicNumber, AtomicMass, SurfaceBindingEnergy, LatticeBindingEnergy, DisplacementEnergy
         '''
-        I = np.where(  np.array([s]) == np.array(atom._els)  )[0][0]
+        try: 
+            I = np.where(  np.array([s]) == np.array(atom._els)  )[0][0]
+        except IndexError:        
+            ErrStr = "Could not locate info on Element with abbreviation `%s`."%(s) + "  Please check `pyTRIMSetup/AtomicInfo.py` for available elements."
+            raise ValueError(ErrStr)
         
         return atom._els[I], atom._nums[I], atom._masses[I], atom._surfbinding[I], atom._binding[I], atom._displacement[I]
         
@@ -163,7 +167,7 @@ class Material(Element):
                 self.name.append(elmt.name)
                 self.elnum.append(elmt.elnum)
                 self.mass.append(elmt.mass)
-                self.element.append(elmt)   # save the element object too
+                self.element.append(elmt)
             self.description = kwargs.pop('name', None)
         else:
             self.el, self.name, self.elnum, self.mass = None, None, None, None
@@ -175,9 +179,8 @@ class Material(Element):
         
         if len(args)>=2:
             if len(args[1]) != len(self.name): 
-                    raise ValueError("Number of elements in 1st args & 2nd arg must match - need exactly one Mole Ratio for each Element provided.")
-            
-            self.molefrac = [float(x)/np.sum(args[1]) for x in args[1]] # check if can convert to number & normalize
+                    raise ValueError("Number of elements in 1st args & 1nd arg must match - need a mole ratio for each Element provided.")
+            self.molefrac = [float(x)/np.sum(args[1]) for x in args[1]] # check if can convert to number
             if ptDEBUG: print self.molefrac
         else:
             self.molefrac = None
@@ -235,7 +238,6 @@ class Layer(object):
         self.isGas = MaterialObj.isGas
 
     def __add__(self,other):
-        '''addition: concatenate to list'''
         return [self, other]
         
         

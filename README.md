@@ -19,8 +19,10 @@ Example:
 
 
 **Setup target materials**
+
 A Material object is created as so:
-  NewMat = Material(  [ListOfElements],  [ListOfMoleRatios],  Density)
+
+  *NewMat = Material(  [ListOfElements],  [ListOfMoleRatios],  Density)*
 
     GaSb = Material(['Ga','Sb'], [0.5,0.5],   3.657)
     AlAs = Material(['Al','Ga','As'], [0.3,0.3,0.4],   2.758)
@@ -28,7 +30,9 @@ A Material object is created as so:
 
 
 **Setup Target layer Stack**
+
   The Stack's Layers are created from top-to-bottom, by adding materials together, 
+  
   while providing a thickness (Angstroms) for each layer.
 
     target = Stack(  GaSb(1500) + AlAs(750) + GaSb(2000) + AlSb(2500) )     # top to bottom
@@ -43,13 +47,16 @@ Since the underlying structure of these commands uses python Lists, we can do so
 
 
 **Setup ion to implant**
-The Ion is defined as
-  Ion(  ElementAbbrv, Energy_keV, Angle_degrees )
+
+The Ion to implant is defined as
+
+  *Ion(  ElementAbbrv, Energy_keV, Angle_degrees )*
   
     target.implant(    Ion('H', 10, 7)    )     # Ion(ElementAbbrv, Energy_keV, Angle_degrees)
 
 
 **Setup a dictionary of simulator options:**
+
   These will eventually be made as default options, but right now you need to specify each one.
 
     options = {}
@@ -69,7 +76,7 @@ The Ion is defined as
 
     target.output('TestOutput.in', options=options, overwrite=True)
 
-    '''
-    The generated file can now be copied to TRIM.IN in the SRIM/TRIM directory.
-    If you just run TRIM.exe, it will pick up all the simulation settings from this file.
-    '''
+
+The file 'TestOutput.in' can now be copied to TRIM.IN in the SRIM/TRIM directory.
+If you just run TRIM.exe, it will pick up all the simulation settings from this file.
+

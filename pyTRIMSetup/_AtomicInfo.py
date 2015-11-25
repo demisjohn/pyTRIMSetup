@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 AtomicInfo
+Version 3
 Part of pyTRIMSetup by Demis D. John, Nov. 2015
 
 Contains information about various atoms, as reported by TRIM.IN
@@ -42,12 +43,13 @@ data into the python lists here.
 
 print 'Loading Atomic info...'
 
-_els = ['H', 'Al', 'Ga', 'As', 'In', 'Sb']
-_nums = [1, 13, 31, 33, 49, 51]
-_masses = [1.008, 26.982, 69.72, 74.922, 114.82, 121.75]
-_surfbinding = [1.0, 3.36, 2.82, 1.26, 2.49, 2.72]
-_displacement = [25 for x in _els]    # set to constant 25
-_binding = [3 for x in _els]   # set to constant 3
+_els = ['H', 'Al', 'Si', 'Ga', 'As', 'In', 'Sb']
+_nums = [1, 13, 14, 31, 33, 49, 51]
+_masses = [1.008, 26.982, 28.086, 69.72, 74.922, 114.82, 121.75]
+
+_displacement = [25, 25, 15, 25, 25, 25, 25]
+_binding = [3, 3, 2, 3, 3, 3, 3]
+_surfbinding = [1.0, 3.36, 4.7, 2.82, 1.26, 2.49, 2.72]
 
 
 

@@ -99,7 +99,7 @@ options = {}
 options['Title'] = 'Testing the script with AlGaAs' 
 options['NumIons'] = 5000       # Max number of ions to simulate - simulator stops at this many ions
 options['AutoSaveNum'] = options['NumIons']     # Save the simulation at this interval
-options['SimType'] = 2      # 1=No;2=Full;3=Sputt;4-5=Ions;6-7=Neutrons.  See SRIM Menu for more info.
+options['SimType'] = 2      # Cascades: 1=No;2=Full;3=Sputt;4-5=Ions;6-7=Neutrons.  See SRIM Menu for more info.
 options['RandomSeed'] = 0
 options['Reminders'] = 0
 options['DiskFiles'] = [0,0,0,0,0,0]    # booleans for: Ranges, Backscatt, Transmit, Sputtered, Collisions(1=Ion;2=Ion+Recoils), Special EXYZ.txt file

@@ -42,10 +42,10 @@ data into the python lists here.
 
 print 'Loading Atomic info...'
 
-_els = ['H', 'Ga', 'As', 'Al', 'Sb']
-_nums = [1, 31, 33, 13, 51]
-_masses = [1.008, 69.72, 74.922, 26.982, 121.75]
-_surfbinding = [1.0, 2.82, 1.26, 3.36, 2.72]
+_els = ['H', 'Al', 'Ga', 'As', 'In', 'Sb']
+_nums = [1, 13, 31, 33, 49, 51]
+_masses = [1.008, 26.982, 69.72, 74.922, 114.82, 121.75]
+_surfbinding = [1.0, 3.36, 2.82, 1.26, 2.49, 2.72]
 _displacement = [25 for x in _els]    # set to constant 25
 _binding = [3 for x in _els]   # set to constant 3
 

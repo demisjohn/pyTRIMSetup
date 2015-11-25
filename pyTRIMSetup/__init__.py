@@ -150,7 +150,7 @@ class Ion(Element):
 class Material(Element):
     '''Create a target material.
         Pass compounds as so:
-            newmat = Material(  [list,of,elements], [list,of,fractions], Density, [CompoundCorr=1, Gas_Boolean=False])
+            newmat = Material(  [list,of,elements], [list,of,fractions], Density, [CompoundCorrection=1, IsGas=False])
             GaAs = Material( ['Ga', 'As'], [0.5, 0.5], 3.625)
             Al = Material( ['Al'], [1.0] )
         Optional arg name='p-contact' - if omitted, element names will be used
@@ -206,12 +206,16 @@ class Material(Element):
             self.isGas = bool( args[4] )
         else:
             self.isGas = False
+        
+        self.compoundCorrection = kwargs.pop('CompoundCorrection', self.compoundCorrection)
+        self.isGas = kwargs.pop('IsGas', self.isGas)
+    #end init()
     
     def __add__(self,other):
         return [self, other]
     
     def __call__(self, thickness):
-        return [Layer(self, thickness)]     # return list, so can add Layers later
+        return [Layer(self, thickness)]     # return list containing Layer object with given thickness
     
 #end class material
 
@@ -239,6 +243,7 @@ class Layer(object):
 
     def __add__(self,other):
         return [self, other]
+#end class(Layer)
         
         
 
@@ -281,6 +286,10 @@ class Stack(object):
     def get_numElements(self):
         '''Return number of unique elements contained.'''
         return len(self.elements)
+    
+    def get_thickness(self):
+        '''Return total thickness of this Stack.'''
+        return np.sum(  [t.thickness for t in self.stack] )
     
     def implant(self, ion_object):
         '''Define the Ion to implant.  Takes a single Ion object as input.

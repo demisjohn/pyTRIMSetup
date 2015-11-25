@@ -61,6 +61,8 @@ ptDEBUG = False   # enable debugging output?
 
 import _AtomicInfo as atom   # Conatins info on each atom, as found in SRIM
 
+_SRIMMaxLayers = 51     # Maximum no. layers SRIM/TRIM can take
+
 templatefile = 'TRIM.IN - Template'
 
 templates_dir = os.path.join(os.path.dirname(_AtomicInfo.__file__), 'templates')
@@ -81,34 +83,47 @@ class Element(object):
         Ga = Element('Ga')
         
         optional args:
+            atnum (int) : atomic number
+            mass (float) : atomic mass in a.m.u.
             displacement (float): displacement energy
             binding (float): binding energy
             surface_binding (float): surface binding energy
     '''
-    def __init__(self, *args, **kwargs):
+    def __init__(self, ElementName=None, **kwargs):
         
-        if len(args) >= 1:
-            self.name, self.elnum, self.mass, self.surfbinding, self.binding, self.displacement = \
-                self.element_lookup( str(args[0]) )
+        if ElementName:
+            self.name, self.elnum, self.mass, \
+            self.surfbinding, self.binding, self.displacement = \
+                self.element_lookup( str(ElementName) )
+            
+            # Optional keyword args
+            self.elnum = kwargs.pop('atnum', self.elnum)
+            self.mass =  kwargs.pop('mass', self.mass)
             self.displacement = kwargs.pop('displacement', self.displacement)
             self.binding = kwargs.pop('binding', self.binding)
             self.surfbinding = kwargs.pop('surface_binding', self.surfbinding)
-        
-        if len(args) >= 2:
-            raise ValueError("Too many arguments!")
-        
+            
+            # Make sure element is defined!
+            if self.name==None:
+                if ElementName==None:
+                    raise ValueError("Element `%s` is not defined!  Either choose an element defined in pyTRIMSetup/AtomicInfo.py, or define it yourself with keyword arguments" %(ElementName)  )
+                else:
+                    if self.elnum!=None and self.mass!=None and self.surfbinding!=None and self.binding!=None and self.displacement!=None:
+                        self.name = ElementName
+                    else:
+                        ErrStr = "Please provide all parameters for your custom Element! Found these parameters:\n\tname= " + str(ElementName) + "\n\tatnum= " + str(self.elnum) + "\n\tmass= " + str(self.mass) + "\n\tsurface_binding= " + str(self.surfbinding) + "\n\tbinding= " + str(self.binding) + "\n\tdisplacement= " + str(self.displacement)
+                        raise ValueError(ErrStr)
+
     #end __init__
     
     def element_lookup(self,  s, ion_only=False):
         '''Returns atomic info for an element, specified by it's abbreviations eg. 'H', 'Si', 'C' etc.
         returns ElementObject, AtomicNumber, AtomicMass, SurfaceBindingEnergy, LatticeBindingEnergy, DisplacementEnergy
         '''
-        try: 
+        try:
             I = np.where(  np.array([s]) == np.array(atom._els)  )[0][0]
-        except IndexError:        
-            ErrStr = "Could not locate info on Element with abbreviation `%s`."%(s) + "  Please check `pyTRIMSetup/AtomicInfo.py` for available elements."
-            raise ValueError(ErrStr)
-        
+        except IndexError:
+            return [None]*6
         return atom._els[I], atom._nums[I], atom._masses[I], atom._surfbinding[I], atom._binding[I], atom._displacement[I]
         
 #end class(elements)
@@ -150,10 +165,22 @@ class Ion(Element):
 class Material(Element):
     '''Create a target material.
         Pass compounds as so:
-            newmat = Material(  [list,of,elements], [list,of,fractions], Density, [CompoundCorrection=1, IsGas=False])
-            GaAs = Material( ['Ga', 'As'], [0.5, 0.5], 3.625)
-            Al = Material( ['Al'], [1.0] )
-        Optional arg name='p-contact' - if omitted, element names will be used
+            newmat = Material(  [list,of,elements], [list,of,fractions], Density, [CompoundCorr=1, Gas_Boolean=False])
+            
+        Example:
+            GaAs = Material( ['Ga', 'As'], [0.5, 0.5], 3.456)
+            Al = Material( ['Al'], [1.0], 4.567 )
+        
+        To make your own elements (that aren't present in the AtomicInfo.py lookup table), make an Elelemnt first and pass that:
+            
+        Example:
+            X = Element('X', atnum=10, mass=9.01, surface_binding=10.2, binding=22, displacement=11)
+            GaX = Material( [ 'Ga', X  ], [0.5,0.5], 7.26 )
+            # Note the missing ''quotes around Element X - it is an Element object
+        
+        Optional argument:
+            name : str
+                Optional name for this material, eg. 'p-contact'.  This will become the layer name in TRIM.  If omitted, the constituent element names will be used.  
     '''
     def __init__(self, *args, **kwargs):
         super(Material, self).__init__()     # init `element` class, to get element lists
@@ -161,26 +188,34 @@ class Material(Element):
             els = args[0]
             self.element, self.name, self.elnum, self.mass = [], [], [], []
             for el in els:
-                elmt = Element(el)
+                if isinstance(el, Element):
+                    elmt = el       # it is already an element object
+                elif isinstance(el, str):
+                    elmt = Element(el)  # convert to Element by passing name
+                else:
+                    ErrStr = "Unknown type passed as element:\n\t%s"%(type(el)) + "\nfor argument:\n\t%s"%(el)
+                    raise ValueError(ErrStr)
+                
                 #name, elnum, mass = self.element_lookup( str(el) )
                 if ptDEBUG: print self.element_lookup( str(el) )
                 self.name.append(elmt.name)
                 self.elnum.append(elmt.elnum)
                 self.mass.append(elmt.mass)
-                self.element.append(elmt)
+                self.element.append(elmt)   # save the element object too
             self.description = kwargs.pop('name', None)
         else:
             self.el, self.name, self.elnum, self.mass = None, None, None, None
         
         if self.description == None:
             self.description = ''
-            for n in self.name:
-                self.description += n       # make description out of passed elements
+            for e in self.element:
+                self.description += e.name       # make description out of passed element's names
         
         if len(args)>=2:
             if len(args[1]) != len(self.name): 
-                    raise ValueError("Number of elements in 1st args & 1nd arg must match - need a mole ratio for each Element provided.")
-            self.molefrac = [float(x)/np.sum(args[1]) for x in args[1]] # check if can convert to number
+                    raise ValueError("Number of elements in 1st args & 2nd arg must match - need exactly one Mole Ratio for each Element provided.")
+            
+            self.molefrac = [   float(x)/np.sum(args[1])   for   x in args[1]   ] # check if can convert to number & normalize
             if ptDEBUG: print self.molefrac
         else:
             self.molefrac = None
@@ -197,6 +232,9 @@ class Material(Element):
         else:
             self.density = None     # replace with automatic interpolated calculation?
         
+        if len(args)<3:
+            raise ValueError("Material() requires at least three arguments: ListOfElements, ListOfMoleRatios, Density")
+        
         if len(args)>=4:
             self.compoundCorrection = float( args[3] )
         else:
@@ -207,6 +245,7 @@ class Material(Element):
         else:
             self.isGas = False
         
+        # get kwargs:
         self.compoundCorrection = kwargs.pop('CompoundCorrection', self.compoundCorrection)
         self.isGas = kwargs.pop('IsGas', self.isGas)
     #end init()
@@ -215,7 +254,7 @@ class Material(Element):
         return [self, other]
     
     def __call__(self, thickness):
-        return [Layer(self, thickness)]     # return list containing Layer object with given thickness
+        return [Layer(self, thickness)]     # return list containing Layer object with given thickness.  List allows __add__'ing later.
     
 #end class material
 
@@ -223,6 +262,8 @@ class Material(Element):
 class Layer(object):
     '''Invisible to user.  Add thickness to a material.
         Layer(Material_Object, thickness_angstroms)
+        
+        The Material object returns a Layer object when called() with a thickness value.  The resulting Layer is the same as a Material but with an added thickness attribute.
         '''
     
     def __init__(self, MaterialObj, thickness):
@@ -242,15 +283,18 @@ class Layer(object):
         self.isGas = MaterialObj.isGas
 
     def __add__(self,other):
+        '''addition: concatenate to list'''
         return [self, other]
-#end class(Layer)
         
         
 
 class Stack(object):
-    ''' stack multiple target materials up, from top to bottom.
-        Pass a list, like so:
-            Target = Stack(  GaAs + InAs + InAs_thick )  '''
+    ''' Stack multiple target materials up, from top to bottom.
+    
+        Pass Materials with some thickness (Angstroms), like so:
+            Target = Stack(  GaAs_top(150) + InAs(250) + InAs_bottom(10000) )  
+        
+        Internally, the Material object returns a Layer object when called() with a thickness value.  Layer objects return a concatenated [List] of Layers when added together, and the Stack consists of this List of Layers.'''
     def __init__(self, *args):
         if ptDEBUG: print "Stack.init():  ", args[0]
         self.stack = args[0]
@@ -258,19 +302,32 @@ class Stack(object):
         ## Generate elements list
         elnames, els = [], []
         for s in self.stack:
-            # each layer in the Stack
-            for e in range(   len(s.material.name)   ):
-                # each element in the Layer
+            # for each layer in the Stack
+            for e in range(   len(s.material.element)   ):
+                # for each element in the Layer
+                elnames.append( s.material.element[e].name )
+                els.append( s.material.element[e] )
+                
+                
+                '''
                 elnames.append( s.material.name[e] )
                 els.append( Element(elnames[-1]) )  # make new element object from this one's name
-        #elnames_u, elnames_i = np.unique(elnames, return_index=True)    # will sort the elements
-        #if ptDEBUG: print els
-        #self.elements = [els[i]   for i in elnames_i]  # save unique element objects
+                '''
+        #end for(StackLayers/Materials)
+        
+        """
+        ## Find only unique elements - don't repeat identical elements
+        #   This should be re-added as an option later.  Currently don't have the login in place to order the elements properly
+        elnames_u, elnames_i = np.unique(elnames, return_index=True)    # will sort the elements
+        if ptDEBUG: print els
+        self.elements = [els[i]   for i in elnames_i]  # save unique element objects
+        """
         self.elements = els  # save all elements, even if repeated
         
-        for i, e in enumerate( self.elements ):
-            e.idnum = i+1       # ID number of this element
-            
+        self.elidnum = range(  1, len(self.elements)+1  )
+        
+        if len(self.stack) > _SRIMMaxLayers:
+            print 'WARNING: SRIM/TRIM.exe can not work with more than %i layers, and your structure contains %i layers!\nSRIM.exe/TRIM.exe may issue a "Runtime Error 9: Subscript out of range".'%( _SRIMMaxLayers, len(self.stack) )
     #end __init__
     
     
@@ -288,8 +345,8 @@ class Stack(object):
         return len(self.elements)
     
     def get_thickness(self):
-        '''Return total thickness of this Stack.'''
-        return np.sum(  [t.thickness for t in self.stack] )
+        '''Return total thickness of this Stack (by adding up thicknesses of each contained layer).'''
+        return np.sum(  [layer.thickness   for layer in   self.stack]  )
     
     def implant(self, ion_object):
         '''Define the Ion to implant.  Takes a single Ion object as input.
@@ -370,8 +427,8 @@ class Stack(object):
         
         ## List of Elements:
         f.write(ts[11])  # comment: Target Elements...
-        for e in self.elements:
-            f.write("Atom %i = %s =      %f  %f" %(e.idnum, e.name, e.elnum, e.mass)    + le)
+        for ii,e in enumerate(self.elements):
+            f.write("Atom %i = %s =      %f  %f" %(self.elidnum[ii], e.name, e.elnum, e.mass)    + le)
         
         ## List of Target layers:
         f.write(ts[13])  # comment: Layer...

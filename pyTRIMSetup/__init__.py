@@ -299,8 +299,9 @@ class Material(Element):
     def __add__(self,other):
         return [self, other]
     
-    def __call__(self, thickness):
-        return [Layer(self, thickness)]     # return list containing Layer object with given thickness.  List allows __add__'ing later.
+    def __call__(self, thickness, name=None):
+        '''Return a list containing Layer object with given thickness.  List allows __add__'ing later.  Optional `name=` param will be passed to Layer, overiding Material name.'''
+        return [Layer(self, thickness, name=name)]     
     
 #end class material
 
@@ -321,10 +322,9 @@ class Layer(object):
         # copy Material's attributes
         self.material = MaterialObj
         if name != None:
-            self.name = name
+            self.description = name    # use passed name
         else:
-            self.name = MaterialObj.name
-        self.description = MaterialObj.description
+            self.description = MaterialObj.description    # use Material's name
         self.elnum = MaterialObj.elnum
         self.mass = MaterialObj.mass
         self.molefrac = MaterialObj.molefrac

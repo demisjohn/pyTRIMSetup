@@ -82,7 +82,8 @@ The Stack's Layers are created from top-to-bottom, by adding materials together,
 # One period of AlAs & GaAs is multipled by two to repeat it twice:
 repeatingpart = 2 * (  AlGaAs(150) + GaAs(110)  )   
 # Insert this into the main Stack:  
-target = Stack(  GaAs(1500) + repeatingpart + AlAs(2500)  )     # top to bottom
+target = Stack(  GaAs(1500) + repeatingpart + AlAs(2500, name='n-contact')  )     # top to bottom
+# Added custom layer name to last AlAs layer.  Default name is just the compound, eg "AlAs"
 
 
 '''
@@ -121,6 +122,14 @@ The generated file can now be copied to TRIM.IN in the SRIM/TRIM directory.
 If you just run TRIM.exe, it will pick up all the simulation settings from this file.
 '''
 
+
+'''
+Extraneous functionality:
+'''
+# Get more info on an object:
+print target
+# Get info on an Element:
+print Element('Si')
 
 
 print 'done.'

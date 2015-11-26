@@ -116,6 +116,24 @@ class Element(object):
 
     #end __init__
     
+    def __str__(self):
+        '''How to `print` this object.'''
+        '''
+        Abbreviation: 'H'
+        Atomic Number: 1
+        Atomic Mass: 1.008
+        Surface Binding E: 30 keV
+        etc. etc.
+        '''
+        pstr = ""   #"<pyTRIMSetup Element Object>\n"
+        pstr += "Abbreviation: '%s'\n" % (self.name)
+        pstr += "Atomic Number: %i\n" % (self.elnum)
+        pstr += "Atomic Mass: %f amu\n" % (self.mass)
+        pstr += "Surface Binding Energy: %f keV\n" % (self.surfbinding)
+        pstr += "Lattice Binding Energy: %f keV\n" % (self.binding)
+        pstr += "Displacement Energy: %f keV" % (self.displacement)
+        return pstr
+    
     def element_lookup(self,  s, ion_only=False):
         '''Returns atomic info for an element, specified by it's abbreviations eg. 'H', 'Si', 'C' etc.
         returns ElementObject, AtomicNumber, AtomicMass, SurfaceBindingEnergy, LatticeBindingEnergy, DisplacementEnergy
@@ -160,6 +178,23 @@ class Ion(Element):
         if len(args)>=4:
             raise ValueError("Too many arguments passed, max 3 arguments.")
     #end __init__
+    
+    def __str__(self):
+        '''How to `print` this object.'''
+        '''
+        Abbreviation: 'H'
+        Atomic Number: 1
+        Atomic Mass: 1.008
+        etc. etc.
+        '''
+        pstr = ""   #"<pyTRIMSetup Ion Object>\n"
+        pstr += "Abbreviation: '%s'\n" % (self.name)
+        pstr += "Atomic Number: %i\n" % (self.elnum)
+        pstr += "Atomic Mass: %f amu\n" % (self.mass)
+        pstr += "Energy: %f keV\n" %(self.energy)
+        pstr += u"Incidence Angle: %f°" %(self.angle)
+        return pstr
+    #end __str__
 #end class(ion)
 
 class Material(Element):
@@ -250,6 +285,17 @@ class Material(Element):
         self.isGas = kwargs.pop('IsGas', self.isGas)
     #end init()
     
+    def __str__(self):
+        '''How to `print` this object.'''
+        '''
+        Al(0.5)As(0.5)
+        '''
+        pstr = ""   #"<pyTRIMSetup Material Object>\n"
+        for e in range(len(self.element)):
+            pstr+= "%s(%f)" % (self.element[e].name, self.molefrac[e])
+        return pstr
+    #end __str__
+    
     def __add__(self,other):
         return [self, other]
     
@@ -264,15 +310,20 @@ class Layer(object):
         Layer(Material_Object, thickness_angstroms)
         
         The Material object returns a Layer object when called() with a thickness value.  The resulting Layer is the same as a Material but with an added thickness attribute.
+        
+        Optional `name=` param can be passed. If omitted, name is taken from the Material object.
         '''
     
-    def __init__(self, MaterialObj, thickness):
+    def __init__(self, MaterialObj, thickness, name=None):
         if not isinstance(MaterialObj, Material):
             raise ValueError("First argument should be a Material object!")
         
         # copy Material's attributes
         self.material = MaterialObj
-        self.name = MaterialObj.name
+        if name != None:
+            self.name = name
+        else:
+            self.name = MaterialObj.name
         self.description = MaterialObj.description
         self.elnum = MaterialObj.elnum
         self.mass = MaterialObj.mass
@@ -281,7 +332,17 @@ class Layer(object):
         self.density = MaterialObj.density
         self.compoundCorrection = MaterialObj.compoundCorrection
         self.isGas = MaterialObj.isGas
-
+    
+    def __str__(self):
+        '''How to `print` this object.'''
+        '''
+        [Name]: Ga(0.5)As(0.5) = 1500Å
+        '''
+        pstr = ""   #"<pyTRIMSetup Layer Object>\n"
+        pstr += u"'%s': %s = %f Å" % (self.name, self.material, self.thickness)
+        return pstr
+    #end __str__
+    
     def __add__(self,other):
         '''addition: concatenate to list'''
         return [self, other]
@@ -332,8 +393,25 @@ class Stack(object):
     def __len__(self):
         return len(self.stack)
     
-    def __repr__(self):
-        return str(self.stack)
+    #def __repr__(self):
+    #    return str(self.stack)
+    # Let python handle __repr__, so you know what type of object it is etc.
+    
+    def __str__(self):
+        '''How to `print` this object.'''
+        '''
+        Layer 1: Si(1.0)[1400Å]
+        Layer 2: Ga(0.5)As(0.5)[1000Å]
+        Total Thickness = 2400Å
+        Number of Elements: 3
+        '''
+        pstr = ""   #"<pyTRIMSetup Stack Object>\n"
+        for i,L in enumerate(self.stack):
+            pstr += "Layer %i: %s\n" %(i+1, L)
+        pstr += u"Total Thickness = %f Å\n" % ( self.get_thickness() )
+        pstr += "Number of Elements: %i" %( self.get_numElements() )
+        return pstr
+    #end __str__
     
     def __add__(self,other):
         return [self, other]

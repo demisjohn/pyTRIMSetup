@@ -353,7 +353,7 @@ class Stack(object):
         '''
         self.ion = ion_object
     
-    def output(self, filepath, options=None, overwrite=False, warn=True, split=False):
+    def output(self, filepath, options=None, overwrite=False, warn=True, split=False, numlayers=30):
         '''Write the *.IN output file to `filepath`.  The .IN extension will be added automatically.
             To use the file in TRIM.exe, the file should be renamed to TRIM.IN and placed in the SRIM/TRIM folder.
             
@@ -381,23 +381,28 @@ class Stack(object):
                 Split the output file up if the Stack contains more layers than SRIM/TRIM can handle?  (As of 2015, SRIM/TRIM gives an error if more than 51 layers are set.)  
                 This allows you to simulate one implant, and then take the transmitted ions (TRANSMIT.txt - see SRIM manual Ch. 9-2) and launch those into the next section of the target.
                 Output files will be numbered with 01 being at the top (first to be implanted).
+            
+            numlayers : int, optional
+                If `split=True`: How many layers should the resulting files contain?  Defaults to 30.
         '''
-        if len(self.stack) > _SRIMMaxLayers:
-            if not split:
+        
+        if not split:
+            if len(self.stack) > _SRIMMaxLayers:
                 print 'WARNING: Stack.output(): SRIM/TRIM.exe can not work with more than %i layers, and your structure contains %i layers!\nSRIM.exe/TRIM.exe may issue a "Runtime Error 9: Subscript out of range".  Use the `split=True` option to output multiple target files.'%( _SRIMMaxLayers, len(self.stack) )
-            else:
-                SPLIT = True
-                #options['DiskFiles'] = [0,0,0,0,0,0]    # booleans for: Ranges, Backscatt, Transmit, Sputtered, Collisions(1=Ion;2=Ion+Recoils), Special EXYZ.txt file
-                # set to output Transmitted ions:
-                options['DiskFiles'][2] = 1     # Transmit.txt output
-                #options['DiskFiles'][4] = 2     # Collisions.txt output
         else:
-            SPLIT = False
+            SPLIT = True
+            # set to output Transmitted ions:
+            options['DiskFiles'][2] = 1     # Transmit.txt output
+            #options['DiskFiles'][4] = 2     # Collisions.txt output
+            
+            # Reference: options['DiskFiles'] = [0,0,0,0,0,0]    # booleans for: Ranges, Backscatt, Transmit, Sputtered, Collisions(1=Ion;2=Ion+Recoils), Special EXYZ.txt file
+        #end if(split)
+
         
         if SPLIT:
-            allstacks = self.splitstack()  # return multiple stacks, split up according to _SRIMMaxLayers
+            allstacks = self.splitstack(numlayers=numlayers)  # return multiple stacks, split up according to _SRIMMaxLayers
         else:
-            allstacks = [self]      # make list so iterable
+            allstacks = [self]      # make list so it's iterable
         
         
 
@@ -412,6 +417,7 @@ class Stack(object):
         ts = t.readlines();     t.close()
         
         
+        tempfilepath = filepath
         
         for Is,stacks in enumerate(allstacks):
             '''iterate through each sub-stack'''
@@ -422,10 +428,11 @@ class Stack(object):
             
             if SPLIT:
                 # construct new filename:
-                if os.path.splitext(filepath)[1] == '.in':
-                    filepath = os.path.splitext(filepath)[0] + "_%0.3i"%(Is) + os.path.splitext(filepath)[1]
+                if os.path.splitext(tempfilepath)[1].lower() == '.in'.lower():
+                    # convert 'TRIM.IN' into 'TRIM 01.IN'
+                    filepath = os.path.splitext(tempfilepath)[0] + "_%0.3i"%(Is) + os.path.splitext(tempfilepath)[1]
                 else:
-                    filepath = filepath + "_%0.3i"%(Is)
+                    filepath = tempfilepath + "_%0.3i"%(Is)
             #end if(SPLIT)
             
             # Check for file existence:
@@ -528,9 +535,46 @@ class Stack(object):
     #end output()
     
     
-    def splitstack(self):
-        '''Split up this stack into multiple smaller stacks, according to the maximum number of layers specified by _SRIMMaxLayers.'''
-        pass
+    def splitstack(self, numlayers=30):
+        '''Split up this stack into multiple smaller stacks, according to the maximum number of layers specified by _SRIMMaxLayers.
+        
+        Parameters
+        ----------
+        numlayers : int, optional
+            How many layers should the resulting lists contain?  Defaults to 30.
+        
+        
+        Returns
+        -------
+        
+        ListOfStacks : list
+            Returns a List conatining the split-up sub-stacks, where each sub-stack has no more layers than specified by `numlayers`.  The sub-stacks can be output as normal.
+            This function is used by Stack.output to automatically split-up a Stack with more layers than SRIM can handle, and create multiple output files accordingly.
+            
+        Examples
+        --------
+        
+        For example, if the original Stack was created via:
+        
+            >>> Orig = Stack( 18*( Mat1(thickness) ) )  # 18 layers
+            
+        And it was split with 
+        
+            >>> NewStacks = Orig.splitstack(numlayers=5)    # want 5 layers max
+            
+        The resulting list would look like so:
+        
+            >>> NewStacks
+            :   [StackWith5Layers, StackWith5Layers, StackWith5Layers, StackWith3Layers]
+        
+        '''
+        if ptDEBUG: print "numlayers=", numlayers
+        n = max(1, int(numlayers))   # sanitize numlayers, to minimum of 1
+        newstacks =  [self.stack[i:i + n] for i in range(0, len(self.stack), n)]
+        # newstacks is list of lists of Layers:
+        #   [[<pyTRIMSetup.Layer object>, <pyTRIMSetup.Layer object>], [<pyTRIMSetup.Layer object>]....]
+        return  [Stack(x)   for x in newstacks]  # converts each list element into a Stack object
+        
     #end splitstack()
     
 #end class(Stack)

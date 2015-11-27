@@ -2,18 +2,20 @@
 pyTRIMSetup
 ===========
 
-A Python module for generating a TRIM.IN file for running TRIM.exe by James Zeigler (see srim.org).
+A Python module for generating a TRIM.IN input file for running TRIM.exe by James Zeigler (see srim.org).
 SRIM/TRIM is an ion-implantation monte-carlo simulator.
 
-After generating an output file with this script, save the file into the SRIM/TRIM directory, rename it to TRIM.IN and run TRIM.EXE.  It will load the settings from your generated file and start the simulation.
+After generating an output file with your python script, save the file into the SRIM/TRIM directory, rename it to TRIM.IN and run TRIM.EXE.  It will load the settings from your generated file and start the simulation.
 This bypasses the SRIM.exe graphical interface, and allows for repeating loops of target layers etc.
+
+Currently working on automating the launch of TRIM.exe with the generated TRIM.IN file & stitching together many-layered targets via the TRANSMIT.txt output option.
 
 Nov. 2015, Demis D. John
 
 ---------------------------------------------------------------
 ## Example:
 
-###import the pyTRIMSetup module
+###Import the pyTRIMSetup module
 
     from pyTRIMSetup import *   
 
@@ -83,5 +85,5 @@ The Ion to implant is defined as
 
 
 The file 'TestOutput.in' can now be copied to TRIM.IN in the SRIM/TRIM directory.
-If you just run TRIM.exe, it will pick up all the simulation settings from this file.
+If you run TRIM.exe, it will pick up all the simulation settings from this file.
 

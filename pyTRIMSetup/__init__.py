@@ -51,7 +51,7 @@ import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
 #import scipy as sp  # SciPy (signal and image processing library)
 import os
 import sys
-from time import strftime
+from time import strftime   # get date/time as string
 
 ####################################################
 
@@ -217,6 +217,55 @@ def importElements( trimfile ):
     return Elements     #, surfbind, latbind, disp
 #end importElements()        
 
+
+def exportElements( elements, filepath, overwrite=False, warn=True ):
+    '''Export a list of Element objects to an AtomicInfo.py file, for performing element lookups with.'''
+    # Check for file existence:
+    if os.path.exists(filepath):        
+        if not overwrite:
+            raise IOError( "File `%s` already exists, aborting.  Set `overwrite=True` to overwrite the file."%(filepath)  )
+        else:
+            if warn:
+                print "WARNING: Overwriting file at: \n\t\%s"%(filepath)
+    #end if(file-exists)
+
+    print "Writing to file: %s" %(filepath)
+    f = open(filepath,'w')
+    fstr = '# -*- coding: utf-8 -*-' + '\n'
+    fstr += '"""\nAtomicInfo\n' + '\n'
+    fstr += '\t Generated on: %s\n' % (  strftime("%Y-%m-%d %H.%M.%S")  )
+    fstr += '\tBy pyTRIMSetup.exportElements(), Demis D. John, 2015\n'
+    fstr += '"""\n\n'
+    fstr += 'print "Loading Atomic info..."\n\n'
+    f.write(fstr) 
+    
+    # element names:
+    fstr = "_els = %s ; \n\n" %(   str( [x.name  for x in elements] )   )
+    f.write( fstr )
+    
+    # element number
+    fstr = "_nums = %s ; \n\n" %(   str( [x.elnum  for x in elements] )   )
+    f.write( fstr )
+    
+    # element mass
+    fstr = "_masses = %s ; \n\n" %(   str( [x.mass  for x in elements] )   )
+    f.write( fstr )
+    
+    # displacement E
+    fstr = "_displacement = %s ; \n\n" %(   str( [x.displacement  for x in elements] )   )
+    f.write( fstr )
+    
+    # lat binding E
+    fstr = "_binding = %s ; \n\n" %(   str( [x.binding  for x in elements] )   )
+    f.write( fstr )
+    
+    # surf binding E
+    fstr = "_surfbinding = %s ; \n\n" %(   str( [x.surfbinding  for x in elements] )   )
+    f.write( fstr )
+    
+    
+    f.close()
+#end exportElements() 
 
 
 class Element(object):

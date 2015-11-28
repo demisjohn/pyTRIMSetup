@@ -10,7 +10,7 @@ This bypasses the SRIM.exe graphical interface, and allows for repeating loops o
 
 Currently developing the automatic launch of TRIM.exe with the generated TRIM.IN file & stitching together many-layered targets via the TRANSMIT.txt output option.
 
-##Contact
+####Contact
 
 Feel free to add issues/feature requests, or even better, clone the `git` repository and make a new branch with your own updates!
 

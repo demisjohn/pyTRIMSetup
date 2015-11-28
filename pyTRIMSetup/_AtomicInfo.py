@@ -1,55 +1,24 @@
 # -*- coding: utf-8 -*-
 """
 AtomicInfo
-Version 3
-Part of pyTRIMSetup by Demis D. John, Nov. 2015
 
-Contains information about various atoms, as reported by TRIM.IN
-All this info was originally found in the TRIM/SRIM program by James Zeigler (srim.org)
-
-You can find info on other elements by using SRIM to create a target containing those elements,
-then start running the implant simulation & abort it.  The program creates a TRIM.IN file
-in it's directory, which contains all the info on each element in the target - copy that
-data into the python lists here.
-
-@author: Demis D. John
-@email: demis@praevium.com
-
+	Generated on: 2015-11-27 21.28.54
+	Created by pyTRIMSetup.exportElements(), Demis D. John, 2015
+    Contains information about various atoms, as reported by TRIM.IN
+    All this info was originally found in the TRIM/SRIM program by James Zeigler (srim.org).
 """
-####################################################
-# Module setup etc.
 
-#from __future__ import division  # Fix nonsense division in Python2.x (where 1/2 = 0 )- unneeded in new python versions
-#import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
-#import scipy as sp  # SciPy (signal and image processing library)
+print "Loading Atomic info..."
 
-#import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
-#import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
-#from pylab import *              # Matplotlib's pylab interface, to enable typing commands just like MatLab.
-#plt.ion()                            # Turned on Matplotlib's interactive mode
+_els = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg'] ; 
 
-## For LaTeX usage (slows down plotting by maybe 5-10 sec per plot):
-#from matplotlib import rc
-#rc('text', usetex=True)        
-#rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-## for Palatino and other serif fonts use:
-#rc('font',**{'family':'serif','serif':['Palatino']})
+_nums = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0, 76.0, 77.0, 78.0, 79.0, 80.0] ; 
 
-####################################################
+_masses = [1.008, 4.003, 6.941, 9.012, 10.811, 12.011, 14.007, 15.999, 18.998, 20.18, 22.99, 24.305, 26.982, 28.086, 30.974, 32.066, 35.453, 39.948, 39.098, 40.08, 44.956, 47.9, 50.942, 51.996, 54.938, 55.847, 58.933, 58.69, 63.546, 65.39, 69.72, 72.61, 74.922, 78.96, 79.904, 83.8, 85.47, 87.62, 88.905, 91.22, 92.906, 95.94, 97.0, 101.07, 102.91, 106.4, 107.87, 112.4, 114.82, 118.71, 121.75, 127.6, 126.9, 131.3, 132.91, 137.327, 138.91, 140.12, 140.91, 144.24, 148.0, 150.36, 151.97, 157.25, 158.93, 162.5, 164.93, 167.26, 168.93, 173.04, 174.97, 178.49, 180.95, 183.85, 186.2, 190.2, 192.2, 195.08, 196.97, 200.59] ; 
 
-# Add other modules here...
+_displacement = [10.0, 5.0, 25.0, 25.0, 25.0, 28.0, 28.0, 28.0, 25.0, 5.0, 25.0, 25.0, 25.0, 15.0, 25.0, 25.0, 25.0, 5.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 15.0, 25.0, 25.0, 25.0, 5.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 5.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0] ; 
 
-####################################################
+_binding = [3.0, 1.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 1.0, 3.0, 3.0, 3.0, 2.0, 3.0, 3.0, 3.0, 1.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.0, 3.0, 3.0, 3.0, 1.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 1.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0] ; 
 
-print 'Loading Atomic info...'
-
-_els = ['H', 'Al', 'Si', 'Ga', 'As', 'In', 'Sb']
-_nums = [1, 13, 14, 31, 33, 49, 51]
-_masses = [1.008, 26.982, 28.086, 69.72, 74.922, 114.82, 121.75]
-
-_displacement = [25, 25, 15, 25, 25, 25, 25]
-_binding = [3, 3, 2, 3, 3, 3, 3]
-_surfbinding = [1.0, 3.36, 4.7, 2.82, 1.26, 2.49, 2.72]
-
-
+_surfbinding = [2.0, 2.0, 1.67, 3.38, 5.73, 7.41, 2.0, 2.0, 2.0, 2.0, 1.12, 1.54, 3.36, 4.7, 3.27, 2.88, 2.0, 2.0, 0.93, 1.83, 3.49, 4.89, 5.33, 4.12, 2.98, 4.34, 4.43, 4.46, 3.52, 1.35, 2.82, 3.88, 1.26, 2.14, 2.0, 2.0, 0.86, 1.7, 4.24, 6.33, 7.59, 6.83, 2.0, 6.69, 5.78, 3.91, 2.97, 1.16, 2.49, 3.12, 2.72, 2.02, 2.0, 2.0, 0.81, 1.84, 4.42, 4.23, 3.71, 3.28, 2.0, 2.16, 1.85, 3.57, 3.81, 2.89, 3.05, 3.05, 2.52, 1.74, 4.29, 6.31, 8.1, 8.68, 8.09, 8.13, 6.9, 5.86, 3.8, 0.64] ; 
 

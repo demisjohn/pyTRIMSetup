@@ -121,21 +121,6 @@ def importElements( trimfile ):
         i+=1
         L = ts[i]   # current line of file
         
-        '''
-        # perform the search:
-        m = atompat.match(  L  )      # use regex pattern to catch 1st word
-        # m will contain any 'groups' () defined in the RegEx pattern.
-        if m:
-            text = m.group(1)	# grab 1st group from RegEx
-            if ptDEBUG: print 'Text found:', m.groups()
-        #groups() prints all captured groups
-        
-        if text.lower() is not "atom":
-            cont=False
-            lastatom = i-1     # Row Num for last Atom in the list
-            break
-        '''
-        
         # perform the search:
         m = pat.search(  L  )      # search for RegEx pattern
         # m will contain any 'groups' () defined in the RegEx pattern.
@@ -159,9 +144,7 @@ def importElements( trimfile ):
     
     # Find first number in target layers:
     layernum = re.compile(     r'\s*(\d+)\s*"(.*)"\s*(\d+\.?\d*)\s*(\d+\.?\d*).*' ,    flags=(re.IGNORECASE) )
-    # pat = re.compile(  r'\s*"(\w*)"\s*\d*\s*\d*\s*'  );   m = pat.search(  r'  1    "Hello"       20     10' );  print m.groups()
-    #r'\s*(\d*)\s*["]\w*["]\s*\d*\s*\d*'
-    #\s*(\d*)\s*["]\w*["]\s*\d*
+
     #  10     "Layer 10"           10000  17.88402 
     
     i = lastline+1
@@ -169,7 +152,7 @@ def importElements( trimfile ):
     while cont:
         i+=1
         L = ts[i]   # current line of file
-        print "Layer search: Line %i:\n\t"%(i), L
+        #if ptDEBUG: print "Layer search: Line %i:\n\t"%(i), L
         
         # perform the search:
         m = layernum.search(  L  )      # search for RegEx pattern
@@ -184,26 +167,25 @@ def importElements( trimfile ):
             cont=False  # unnecessary if `break` works
             break   # end the while loop
     #end while(target layers)
-    print "lastline=",lastline
+    #if ptDEBUG: print "lastline=",lastline
     
     # Get displacement E's:
     disp = ts[lastline + 5];
-    print "disp=", disp
+    #if ptDEBUG: print "disp=", disp
     disp = disp.split()     # convert to list, splitting at spaces
     disp = [float(x) for x in disp]     # convert str --> float
     
     # Lattice binding E's
     latbind = ts[lastline + 7]
-    print "latbind=", latbind
+    #if ptDEBUG: print "latbind=", latbind
     latbind = latbind.split()
     latbind = [float(x) for x in latbind]
     
     # Surface binding E's
     surfbind = ts[lastline + 9]
-    print "surfbind=", surfbind
+    #if ptDEBUG: print "surfbind=", surfbind
     surfbind = surfbind.split()
     surfbind = [float(x) for x in surfbind]
-    print "len(surfbind) = ", len(surfbind)
     
     #Elements = [pos,name,elnum,mass]
     Elements=[]
@@ -213,7 +195,7 @@ def importElements( trimfile ):
             surface_binding=surfbind[ii], lattice_binding=latbind[ii], displacement=disp[ii])  )
     #end for(name)
         
-    if ptDEBUG: print [str(x) for x in Elements]
+    #if ptDEBUG: print [str(x) for x in Elements]
     return Elements     #, surfbind, latbind, disp
 #end importElements()        
 
@@ -233,8 +215,10 @@ def exportElements( elements, filepath, overwrite=False, warn=True ):
     f = open(filepath,'w')
     fstr = '# -*- coding: utf-8 -*-' + '\n'
     fstr += '"""\nAtomicInfo\n' + '\n'
-    fstr += '\t Generated on: %s\n' % (  strftime("%Y-%m-%d %H.%M.%S")  )
-    fstr += '\tBy pyTRIMSetup.exportElements(), Demis D. John, 2015\n'
+    fstr += '\tGenerated on: %s\n' % (  strftime("%Y-%m-%d %H.%M.%S")  )
+    fstr += '\tCreated by pyTRIMSetup.exportElements(), Demis D. John, 2015\n'
+    fstr += '\tContains information about various atoms, as reported by TRIM.IN\n'
+    fstr += '\tAll this info was originally found in the TRIM/SRIM program by James F. Zeigler (srim.org).\n'
     fstr += '"""\n\n'
     fstr += 'print "Loading Atomic info..."\n\n'
     f.write(fstr) 
@@ -262,7 +246,6 @@ def exportElements( elements, filepath, overwrite=False, warn=True ):
     # surf binding E
     fstr = "_surfbinding = %s ; \n\n" %(   str( [x.surfbinding  for x in elements] )   )
     f.write( fstr )
-    
     
     f.close()
 #end exportElements() 
@@ -356,7 +339,8 @@ class Element(object):
             I = np.where(  np.array([s]) == np.array(atom._els)  )[0][0]
         except IndexError:
             return [None]*6
-        return atom._els[I], atom._nums[I], atom._masses[I], atom._surfbinding[I], atom._binding[I], atom._displacement[I]
+        return atom._els[I], atom._nums[I], atom._masses[I], \
+            atom._surfbinding[I], atom._binding[I], atom._displacement[I]
         
 #end class(elements)
 

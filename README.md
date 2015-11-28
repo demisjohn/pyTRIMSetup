@@ -8,7 +8,7 @@ SRIM/TRIM is an ion-implantation monte-carlo simulator.
 After generating an output file with your python script, save the file into the SRIM/TRIM directory, rename it to TRIM.IN and run TRIM.EXE.  It will load the settings from your generated file and start the simulation.
 This bypasses the SRIM.exe graphical interface, and allows for repeating loops of target layers etc.
 
-Currently working on automating the launch of TRIM.exe with the generated TRIM.IN file & stitching together many-layered targets via the TRANSMIT.txt output option.
+Currently developing the automatic launch of TRIM.exe with the generated TRIM.IN file & stitching together many-layered targets via the TRANSMIT.txt output option.
 
 ##Contact
 

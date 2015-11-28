@@ -57,16 +57,17 @@ from time import strftime
 
 # Internal module setup
 
-ptDEBUG = False   # enable debugging output?
+ptDEBUG = True   # enable debugging output?
 
 import _AtomicInfo as atom   # Conatins info on each atom, as found in SRIM
 
 _SRIMMaxLayers = 51     # Maximum no. layers SRIM/TRIM can take
 
+'''
 templatefile = 'TRIM.IN - Template'
-
 templates_dir = os.path.join(os.path.dirname(_AtomicInfo.__file__), 'templates')
 templatefile = os.path.join(templates_dir, templatefile)
+'''
 
 '''
 import pkg_resources
@@ -77,43 +78,207 @@ templatefile = pkg_resources.resource_string(resource_package, resource_path)
 '''
 ####################################################
 
+
+def importElements( trimfile ):
+    '''
+    Use this function to import elements from a TRIM.IN file created by SRIM.exe.
+    The Elements stored in the file will be returned in a list, along with the corresponding binding energies etc.
+    
+    Parameters
+    ----------
+    
+    trimfile : path
+        Path to TRIM.IN file you'd like to import elements from.
+    
+    
+    Returns
+    -------
+    
+    Elements, SurfBinding, LatticeBinding, Displacement : lists
+        Lists of Element objects, surface binding energies, lattice binding energies and displacement energies.
+    '''
+    
+    import re   # RegEx
+    
+    if not os.path.exists(trimfile):        
+        raise IOError( "Could not find the specified TRIM.IN!  Looked at path:\n\t\%s" % (trimfile)  )
+    t = open(trimfile, 'r')
+    ts = t.readlines();     t.close()
+    
+    '''
+    # Find first word:
+    atompat = re.compile(     r'\s*(\w*)\s*.*' ,    flags=(re.IGNORECASE) )
+    '''
+    
+    # Find Atom data
+    pat = re.compile(     r'\s*Atom\s*(?P<pos>\d*)\s*=\s*(?P<name>\w*)\s*=\s*(?P<elnum>\d+\.?\d*)\s*(?P<mass>\d+\.?\d*)' ,    flags=(re.IGNORECASE) )
+    
+    
+    cont=True
+    i=11    # start reading at 1st line of target elements
+    pos, name, elnum, mass = [],[],[],[]
+    while cont:
+        i+=1
+        L = ts[i]   # current line of file
+        
+        '''
+        # perform the search:
+        m = atompat.match(  L  )      # use regex pattern to catch 1st word
+        # m will contain any 'groups' () defined in the RegEx pattern.
+        if m:
+            text = m.group(1)	# grab 1st group from RegEx
+            if ptDEBUG: print 'Text found:', m.groups()
+        #groups() prints all captured groups
+        
+        if text.lower() is not "atom":
+            cont=False
+            lastatom = i-1     # Row Num for last Atom in the list
+            break
+        '''
+        
+        # perform the search:
+        m = pat.search(  L  )      # search for RegEx pattern
+        # m will contain any 'groups' () defined in the RegEx pattern.
+        if m:
+            # found regex pattern on this line
+            #(?P<pos>\d*)  (?P<name>\w*)  (?P<elnum>\d+\.?\d*)  (?P<mass>\d+\.?\d*)
+            pos.append(   int(  m.group('pos')  )    )	# grab named group from RegEx
+            name.append(    m.group('name')    )
+            elnum.append(    float(  m.group('elnum')  )    )
+            mass.append(    float(  m.group('mass')  )    )
+            if ptDEBUG: print 'Atom found on line#%i:'%(i), m.groups(), "\n\tLast (pos,name,elnum,mass) = ",pos[-1],name[-1],elnum[-1],mass[-1]
+            
+        #groups() prints all captured groups
+        else:
+            # did not find the regex pattern on this line
+            if ptDEBUG: print "No Atom found at line #%i.  "%( i )
+            lastline =  i
+            cont=False  # unnecessary if `break` works
+        #raw_input()
+    #end while(atoms)
+    
+    # Find first number in target layers:
+    layernum = re.compile(     r'\s*(\d+)\s*"(.*)"\s*(\d+\.?\d*)\s*(\d+\.?\d*).*' ,    flags=(re.IGNORECASE) )
+    # pat = re.compile(  r'\s*"(\w*)"\s*\d*\s*\d*\s*'  );   m = pat.search(  r'  1    "Hello"       20     10' );  print m.groups()
+    #r'\s*(\d*)\s*["]\w*["]\s*\d*\s*\d*'
+    #\s*(\d*)\s*["]\w*["]\s*\d*
+    #  10     "Layer 10"           10000  17.88402 
+    
+    i = lastline+1
+    cont=True
+    while cont:
+        i+=1
+        L = ts[i]   # current line of file
+        print "Layer search: Line %i:\n\t"%(i), L
+        
+        # perform the search:
+        m = layernum.search(  L  )      # search for RegEx pattern
+        # m will contain any 'groups' () defined in the RegEx pattern.
+        if m:
+            d = m.group(1)
+            if ptDEBUG: print 'Layer found on line#%i:'%(i), m.groups()
+        #groups() prints all captured groups
+        else:
+            if ptDEBUG: print "No Layer found at line #%i."%( i )
+            lastline =  i
+            cont=False  # unnecessary if `break` works
+            break   # end the while loop
+    #end while(target layers)
+    print "lastline=",lastline
+    
+    # Get displacement E's:
+    disp = ts[lastline + 5];
+    print "disp=", disp
+    disp = disp.split()     # convert to list, splitting at spaces
+    disp = [float(x) for x in disp]     # convert str --> float
+    
+    # Lattice binding E's
+    latbind = ts[lastline + 7]
+    print "latbind=", latbind
+    latbind = latbind.split()
+    latbind = [float(x) for x in latbind]
+    
+    # Surface binding E's
+    surfbind = ts[lastline + 9]
+    print "surfbind=", surfbind
+    surfbind = surfbind.split()
+    surfbind = [float(x) for x in surfbind]
+    print "len(surfbind) = ", len(surfbind)
+    
+    #Elements = [pos,name,elnum,mass]
+    Elements=[]
+    for ii in range(  len(name)  ):
+        # Generate Element objects for each of these:
+        Elements.append(  Element(name=name[ii], atnum=elnum[ii], mass=mass[ii], \
+            surface_binding=surfbind[ii], lattice_binding=latbind[ii], displacement=disp[ii])  )
+    #end for(name)
+        
+    if ptDEBUG: print [str(x) for x in Elements]
+    return Elements     #, surfbind, latbind, disp
+#end importElements()        
+
+
+
 class Element(object):
     ''' Define an Element by passing the Abbreviation eg. 'H', 'Si' etc.
         
-        Ga = Element('Ga')
+        >>> Silicon = Element('Si')      # will perform a lookup of the Element to obtain parameters
+        
+        Keyworded arguments can be used to override the default parameters for an element, eg.
+        
+        >>> Silicon = Element('Si', mass=28.05)     # Only mass is overidden
+        
+        If only keyword-args are passed, then no lookup will be performed - it is assumed you are defining the Element manually (and all parameters will thus need to be defined by you).
+        
+        Manual Element definition (provide a `name=` parameter):
+        
+        >>> demisium = Element( name='De', atnum=149, mass=297.997, displacement=25, lattice_binding=3, surface_binding=1.097)
+        
         
         optional args:
+            name (str) : name for the element
             atnum (int) : atomic number
             mass (float) : atomic mass in a.m.u.
-            displacement (float): displacement energy
-            binding (float): binding energy
-            surface_binding (float): surface binding energy
+            displacement (float): displacement energy (keV)
+            lattice_binding (float): binding energy (keV)
+            surface_binding (float): surface binding energy (keV)
     '''
     def __init__(self, ElementName=None, **kwargs):
         
         if ElementName:
-            self.name, self.elnum, self.mass, \
+            if ptDEBUG: print "Got ElementName: %s"%ElementName
+            name, self.elnum, self.mass, \
             self.surfbinding, self.binding, self.displacement = \
                 self.element_lookup( str(ElementName) )
+            
+            if name==None:
+                self.name = ElementName
+            else:
+                self.name = name
             
             # Optional keyword args
             self.elnum = kwargs.pop('atnum', self.elnum)
             self.mass =  kwargs.pop('mass', self.mass)
             self.displacement = kwargs.pop('displacement', self.displacement)
-            self.binding = kwargs.pop('binding', self.binding)
+            self.binding = kwargs.pop('lattice_binding', self.binding)
             self.surfbinding = kwargs.pop('surface_binding', self.surfbinding)
             
-            # Make sure element is defined!
-            if self.name==None:
-                if ElementName==None:
-                    raise ValueError("Element `%s` is not defined!  Either choose an element defined in pyTRIMSetup/AtomicInfo.py, or define it yourself with keyword arguments" %(ElementName)  )
-                else:
-                    if self.elnum!=None and self.mass!=None and self.surfbinding!=None and self.binding!=None and self.displacement!=None:
-                        self.name = ElementName
-                    else:
-                        ErrStr = "Please provide all parameters for your custom Element! Found these parameters:\n\tname= " + str(ElementName) + "\n\tatnum= " + str(self.elnum) + "\n\tmass= " + str(self.mass) + "\n\tsurface_binding= " + str(self.surfbinding) + "\n\tbinding= " + str(self.binding) + "\n\tdisplacement= " + str(self.displacement)
-                        raise ValueError(ErrStr)
-
+        else:
+            # no ElementName passed, use all kwargs to define.
+            # Optional keyword args
+            self.name = kwargs.pop('name', None)
+            self.elnum = kwargs.pop('atnum', None)
+            self.mass =  kwargs.pop('mass', None)
+            self.displacement = kwargs.pop('displacement', None)
+            self.binding = kwargs.pop('lattice_binding', None)
+            self.surfbinding = kwargs.pop('surface_binding', None)
+        #end if(ElementName)
+            
+        # Make sure element is defined!
+        if self.name==None or self.elnum==None or self.mass==None or self.surfbinding==None or self.binding==None or self.displacement==None:
+            ErrStr = "Please provide all parameters for your custom Element! Found these parameters:\n\tname= " + str(ElementName) + "\n\tatnum= " + str(self.elnum) + "\n\tmass= " + str(self.mass) + "\n\tsurface_binding= " + str(self.surfbinding) + "\n\tbinding= " + str(self.binding) + "\n\tdisplacement= " + str(self.displacement)
+            raise ValueError(ErrStr)
+        
     #end __init__
     
     def __str__(self):
@@ -154,10 +319,11 @@ class Ion(Element):
         H_implant = ion('H', 150, 7) 
         '''
     def __init__(self, *args):
-        super(Ion, self).__init__()     # init `element` class, to get element lists
+        #super(Ion, self).__init__()     # init `element` class, to get element lists
         if len(args)>=1:
             el = args[0]
             super(Ion, self).__init__(el)     # init `element` class, to get element lists
+            
             #self.name, self.elnum, self.mass = self.element_lookup( str(el), ion_only=True )
             #if ptDEBUG: print self.element_lookup( str(el) )
         else:
@@ -218,7 +384,7 @@ class Material(Element):
                 Optional name for this material, eg. 'p-contact'.  This will become the layer name in TRIM.  If omitted, the constituent element names will be used.  
     '''
     def __init__(self, *args, **kwargs):
-        super(Material, self).__init__()     # init `element` class, to get element lists
+        #super(Material, self).__init__()     # init `element` class, to get element lists
         if len(args)>=1:
             els = args[0]
             self.element, self.name, self.elnum, self.mass = [], [], [], []
@@ -489,13 +655,13 @@ class Stack(object):
         le = '\r'
         tab = '    '    
         
-        
+        '''
         # open TRIM.IN template file:
         if not os.path.exists(templatefile):        
             raise IOError( "Could not find the TRIM.IN template file in the module directory!  Looked at path:\n\t\%s" % (templatefile)  )
         t = open(templatefile, 'r')
         ts = t.readlines();     t.close()
-        
+        '''
         
         tempfilepath = filepath
         

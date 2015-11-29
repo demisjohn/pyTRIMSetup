@@ -94,8 +94,10 @@ def importElements( trimfile ):
     Returns
     -------
     
-    Elements, SurfBinding, LatticeBinding, Displacement : lists
-        Lists of Element objects, surface binding energies, lattice binding energies and displacement energies.
+    Elements : list of Element objects
+        Lists of Element objects, which contains the surface binding energies, lattice binding energies and displacement energies, element numbers and atomic masses.
+        This list can be passed directly to `exportElements()` to create a new _AtomicInfo.py file.
+    
     '''
     
     import re   # RegEx
@@ -201,7 +203,23 @@ def importElements( trimfile ):
 
 
 def exportElements( elements, filepath, overwrite=False, warn=True ):
-    '''Export a list of Element objects to an AtomicInfo.py file, for performing element lookups with.'''
+    '''Export a list of Element objects to an AtomicInfo.py file, for performing element lookups with.  The resulting file is a Python script, which pyTRIMSetup can import as part of the module, typically stored in pyTRIMSetup/_AtomicInfo.py.
+    
+    Parameters
+    ----------
+    elements : list
+        A list of Element objects.  The output from `importElements()` can be passed directy to this parameter.
+    
+    filepath : path (str)
+        Where to save the output file to.  The output file should be saved to pyTRIMSetup/_AtomicInfo.py to allow Element lookups form the new file.
+    
+    overwrite : {True | False}, optional
+        Overwrite existing files? False by default.
+    
+    warn : {True | False}, optional
+        Issue warning when overwriting a file?  True by default.
+    '''
+    
     # Check for file existence:
     if os.path.exists(filepath):        
         if not overwrite:
@@ -398,7 +416,9 @@ class Ion(Element):
 
 class Material(Element):
     '''Create a target material.
+    
         Pass compounds as so:
+        
             newmat = Material(  [list,of,elements], [list,of,fractions], Density, [CompoundCorr=1, Gas_Boolean=False])
             
         Example:
@@ -415,6 +435,8 @@ class Material(Element):
         Optional argument:
             name : str
                 Optional name for this material, eg. 'p-contact'.  This will become the layer name in TRIM.  If omitted, the constituent element names will be used.  
+        
+        Element abbreviations (eg. 'H', 'Si' etc.) are matched up to their parameters via an `element_lookup()` function, which looks in pyTRIMSetup/_AtomicInfo.py to find the info on that element. The functions importElements()/exportElements() can be used to create the _AtomicInfo.py file.
     '''
     def __init__(self, *args, **kwargs):
         #super(Material, self).__init__()     # init `element` class, to get element lists

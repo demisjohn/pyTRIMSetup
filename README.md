@@ -39,9 +39,7 @@ A Material object is created as so:
 
 ###Setup Target layer Stack
 
-  The Stack's Layers are created from top-to-bottom, by adding materials together, 
-  
-  while providing a thickness (Angstroms) for each layer.
+  The Stack's Layers are created from top-to-bottom, by adding materials together, while providing a thickness (Angstroms) for each layer.
 
     target = Stack(  GaSb(1500) + AlAs(750) + GaSb(2000) + AlSb(2500) )     # top to bottom
 
@@ -83,7 +81,8 @@ The Ion to implant is defined as
 
 
 ###Generate the output TRIM.IN file
-with specified path/filename, passing the above options dictionary.
+
+Output the file at specified path/filename, passing the above options dictionary.
 
     target.output('TestOutput.in', options=options, overwrite=True)
 

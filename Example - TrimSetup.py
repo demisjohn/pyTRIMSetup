@@ -37,6 +37,12 @@ import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
 
 # Add other modules here...
 from pyTRIMSetup import *   # import the pyTRIMSetup module
+#   Could also import as
+#       import pyTRIMSetup as pt    # The more Pythonic way!
+#   And subsequent commands would use that namespace, like so:
+#       Si = pt.Material( 'Si', 3.456 )
+#       target = pt.Stack(  Si(1000)  )
+#       target.implant(     pt.Ion( 'Be',  100 )    )
 
 ####################################################
 
@@ -131,6 +137,11 @@ print target
 # Get info on an Element:
 print Element('Si')
 
+# Also output the same target but with metal layers:
+metal = Au(5000) + Pt(300) + Ti(100)        # A metal contact layer:
+target2 = Stack(   metal + GaAs(1500) + repeatingpart + AlAs(2500, name='n-contact')   )
+target2.implant(    Ion('H', 10, 7)    )
+target2.output('ExampleOutput - with metal.in', options=options, overwrite=True)
 
 print 'done.'
 

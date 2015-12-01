@@ -57,13 +57,19 @@ from time import strftime   # get date/time as string
 
 # Internal module setup
 
-ptDEBUG = True   # enable debugging output?
+global ptDEBUG
+ptDEBUG = False   # enable debugging output?
 
 import _AtomicInfo as atom   # Conatins info on each atom, as found in SRIM
 
 _SRIMMaxLayers = 51     # Maximum no. layers SRIM/TRIM can take
 
-'''
+
+from sys import platform as _platform       # Used in Stack.output
+
+
+
+''' This is now hard-coded
 templatefile = 'TRIM.IN - Template'
 templates_dir = os.path.join(os.path.dirname(_AtomicInfo.__file__), 'templates')
 templatefile = os.path.join(templates_dir, templatefile)
@@ -78,11 +84,26 @@ templatefile = pkg_resources.resource_string(resource_package, resource_path)
 '''
 ####################################################
 
+#  These override the value set above in `ptDEBUG`
+def set_DEBUG():
+    '''Enable verbose output for debugging.'''
+    global ptDEBUG
+    ptDEBUG = True
+
+def unset_DEBUG():
+    '''Disable verbose debugging output.'''
+    global ptDEBUG
+    ptDEBUG = False
+
+def DEBUG():
+    '''Returns whether DEBUG is true or false'''
+    return ptDEBUG
+
 
 def importElements( trimfile ):
     '''
     Use this function to import elements from a TRIM.IN file created by SRIM.exe.
-    The Elements stored in the file will be returned in a list, along with the corresponding binding energies etc.
+    The Elements stored in the file will be returned in a list, containing the corresponding binding energies etc.
     
     Parameters
     ----------
@@ -133,72 +154,71 @@ def importElements( trimfile ):
             name.append(    m.group('name')    )
             elnum.append(    float(  m.group('elnum')  )    )
             mass.append(    float(  m.group('mass')  )    )
-            if ptDEBUG: print 'Atom found on line#%i:'%(i), m.groups(), "\n\tLast (pos,name,elnum,mass) = ",pos[-1],name[-1],elnum[-1],mass[-1]
+            if DEBUG(): print 'Atom found on line#%i:'%(i), m.groups(), "\n\tLast (pos,name,elnum,mass) = ",pos[-1],name[-1],elnum[-1],mass[-1]
             
         #groups() prints all captured groups
         else:
             # did not find the regex pattern on this line
-            if ptDEBUG: print "No Atom found at line #%i.  "%( i )
+            if DEBUG(): print "No Atom found at line #%i.  "%( i )
             lastline =  i
             cont=False  # unnecessary if `break` works
         #raw_input()
     #end while(atoms)
     
-    # Find first number in target layers:
+    # Find Layer rows:
     layernum = re.compile(     r'\s*(\d+)\s*"(.*)"\s*(\d+\.?\d*)\s*(\d+\.?\d*).*' ,    flags=(re.IGNORECASE) )
-
-    #  10     "Layer 10"           10000  17.88402 
+    #  10     "Layer 10"           10000  17.88402     0.5000
     
     i = lastline+1
     cont=True
     while cont:
         i+=1
         L = ts[i]   # current line of file
-        #if ptDEBUG: print "Layer search: Line %i:\n\t"%(i), L
+        #if DEBUG(): print "Layer search: Line %i:\n\t"%(i), L
         
         # perform the search:
         m = layernum.search(  L  )      # search for RegEx pattern
         # m will contain any 'groups' () defined in the RegEx pattern.
         if m:
             d = m.group(1)
-            if ptDEBUG: print 'Layer found on line#%i:'%(i), m.groups()
+            if DEBUG(): print 'Layer found on line#%i:'%(i), m.groups()
         #groups() prints all captured groups
         else:
-            if ptDEBUG: print "No Layer found at line #%i."%( i )
+            if DEBUG(): print "No Layer found at line #%i."%( i )
             lastline =  i
             cont=False  # unnecessary if `break` works
             break   # end the while loop
     #end while(target layers)
-    #if ptDEBUG: print "lastline=",lastline
+    #if DEBUG(): print "lastline=",lastline
     
     # Get displacement E's:
-    disp = ts[lastline + 5];
-    #if ptDEBUG: print "disp=", disp
+    disp = ts[lastline + 5]
+    #if DEBUG(): print "disp=", disp
     disp = disp.split()     # convert to list, splitting at spaces
     disp = [float(x) for x in disp]     # convert str --> float
     
     # Lattice binding E's
     latbind = ts[lastline + 7]
-    #if ptDEBUG: print "latbind=", latbind
+    #if DEBUG(): print "latbind=", latbind
     latbind = latbind.split()
     latbind = [float(x) for x in latbind]
     
     # Surface binding E's
     surfbind = ts[lastline + 9]
-    #if ptDEBUG: print "surfbind=", surfbind
+    #if DEBUG(): print "surfbind=", surfbind
     surfbind = surfbind.split()
     surfbind = [float(x) for x in surfbind]
     
-    #Elements = [pos,name,elnum,mass]
+    #old: Elements = [pos,name,elnum,mass]
     Elements=[]
     for ii in range(  len(name)  ):
-        # Generate Element objects for each of these:
+        # Generate new Element objects for each of these & add to list:
         Elements.append(  Element(name=name[ii], atnum=elnum[ii], mass=mass[ii], \
             surface_binding=surfbind[ii], lattice_binding=latbind[ii], displacement=disp[ii])  )
     #end for(name)
-        
-    #if ptDEBUG: print [str(x) for x in Elements]
-    return Elements     #, surfbind, latbind, disp
+    
+    #if DEBUG(): print [str(x) for x in Elements]
+    return Elements     #old:   Elements, surfbind, latbind, disp
 #end importElements()        
 
 
@@ -296,7 +316,7 @@ class Element(object):
     def __init__(self, ElementName=None, **kwargs):
         
         if ElementName:
-            if ptDEBUG: print "Got ElementName: %s"%ElementName
+            if DEBUG(): print "Got ElementName: %s"%ElementName
             name, self.elnum, self.mass, \
             self.surfbinding, self.binding, self.displacement = \
                 self.element_lookup( str(ElementName) )
@@ -376,19 +396,19 @@ class Ion(Element):
             super(Ion, self).__init__(el)     # init `element` class, to get element lists
             
             #self.name, self.elnum, self.mass = self.element_lookup( str(el), ion_only=True )
-            #if ptDEBUG: print self.element_lookup( str(el) )
+            #if DEBUG(): print self.element_lookup( str(el) )
         else:
             self.el, self.name, self.elnum, self.mass = None, None, None, None
         
         if len(args)>=2:
             self.energy = float( args[1] )
-            if ptDEBUG: print self.energy
+            if DEBUG(): print self.energy
         else:
             self.energy = None
         
         if len(args)>=3:
             self.angle = float( args[2] )
-            if ptDEBUG: print self.angle
+            if DEBUG(): print self.angle
         else:
             self.angle=0
         
@@ -440,8 +460,18 @@ class Material(Element):
     '''
     def __init__(self, *args, **kwargs):
         #super(Material, self).__init__()     # init `element` class, to get element lists
+        
+        # 1st arg: element abbreviation
         if len(args)>=1:
-            els = args[0]
+            if isinstance(args[0], (tuple,list) ):
+                els = args[0]
+            elif isinstance(args[0], str):
+                els = [  args[0]  ]    # add to list, so can iterate
+            else:
+                ErrStr = "Expected 1st argument to be list/tuple or string.  Instead got type: %s = `%s`."%( type(args[0]),  args[0] )
+                raise ValueError( ErrStr )
+            #end if(list or str)
+            
             self.element, self.name, self.elnum, self.mass = [], [], [], []
             for el in els:
                 if isinstance(el, Element):
@@ -453,7 +483,7 @@ class Material(Element):
                     raise ValueError(ErrStr)
                 
                 #name, elnum, mass = self.element_lookup( str(el) )
-                if ptDEBUG: print self.element_lookup( str(el) )
+                if DEBUG(): print self.element_lookup( str(el) )
                 self.name.append(elmt.name)
                 self.elnum.append(elmt.elnum)
                 self.mass.append(elmt.mass)
@@ -467,22 +497,23 @@ class Material(Element):
             for e in self.element:
                 self.description += e.name       # make description out of passed element's names
         
+        # 2nd arg: mole-frac.
         if len(args)>=2:
-            if len(args[1]) != len(self.name): 
+            if isinstance(args[1],  (tuple, list) ):
+                mf = args[1]
+            else:
+                mf = [  args[1]  ]    # add to list, so can iterate
+            #end if(list or str)
+            
+            if len(mf) != len(self.name): 
                     raise ValueError("Number of elements in 1st args & 2nd arg must match - need exactly one Mole Ratio for each Element provided.")
             
-            self.molefrac = [   float(x)/np.sum(args[1])   for   x in args[1]   ] # check if can convert to number & normalize
-            if ptDEBUG: print self.molefrac
+            self.molefrac = [   float(x)/np.sum(mf)   for   x in mf   ] # check if can convert to number & normalize
+            if DEBUG(): print self.molefrac
         else:
             self.molefrac = None
         
-        '''
-        if len(args)>=3:
-            self.thickness = float( args[2] )
-        else:
-            self.thickness = None
-        '''
-        
+        # 3rd arg: density
         if len(args)>=3:
             self.density = float( args[2] )
         else:
@@ -578,7 +609,7 @@ class Stack(object):
         
         Internally, the Material object returns a Layer object when called() with a thickness value.  Layer objects return a concatenated [List] of Layers when added together, and the Stack consists of this List of Layers.'''
     def __init__(self, *args):
-        if ptDEBUG: print "Stack.init():  ", args[0]
+        if DEBUG(): print "Stack.init():  ", args[0]
         self.stack = args[0]
         
         ## Generate elements list
@@ -601,7 +632,7 @@ class Stack(object):
         ## Find only unique elements - don't repeat identical elements
         #   This should be re-added as an option later.  Currently don't have the login in place to order the elements properly
         elnames_u, elnames_i = np.unique(elnames, return_index=True)    # will sort the elements
-        if ptDEBUG: print els
+        if DEBUG(): print els
         self.elements = [els[i]   for i in elnames_i]  # save unique element objects
         """
         self.elements = els  # save all elements, even if repeated
@@ -631,11 +662,16 @@ class Stack(object):
             pstr += "Layer %i: %s\n" %(i+1, L)
         pstr += u"Total Thickness = %f Å\n" % ( self.get_thickness() )
         pstr += "Number of Elements: %i" %( self.get_numElements() )
+        #if DEBUG(): print pstr
         return pstr
     #end __str__
     
     def __add__(self,other):
-        return [self, other]
+        return self.stack + list(other)
+    
+    def __radd__(self,other):
+        '''Reverse Add'''
+        return list(other) + self.stack
     
     def get_numElements(self):
         '''Return number of unique elements contained.'''
@@ -704,11 +740,22 @@ class Stack(object):
             allstacks = [self]      # make list so it's iterable
         
         
+        # This is now set at the top of the module.
+        #le = '\r\n'   # (If run on MacOS) line-ending: put this at the end of every line!
+        #le = '\r'       # If executed on WinXP
+        tab = '    ' 
 
-        #le = '\r\n'   # line-ending: put this at the end of every line!
-        # WinXP:
-        le = '\r'
-        tab = '    '    
+        # Determine line-ending based on system we're executing on. 
+        #   _platform imported at top, from sys.platform  
+        if _platform == "linux" or _platform == "linux2":
+           # linux
+           le = '\r\n'      # not tested!
+        elif _platform == "darwin":
+           # MAC OS X
+           le = '\r\n'
+        elif _platform == "win32":
+           # Windows
+           le = '\n'
         
         '''
         # open TRIM.IN template file:
@@ -884,7 +931,7 @@ class Stack(object):
             :   [StackWith5Layers, StackWith5Layers, StackWith5Layers, StackWith3Layers]
         
         '''
-        if ptDEBUG: print "numlayers=", numlayers
+        if DEBUG(): print "numlayers=", numlayers
         n = max(1, int(numlayers))   # sanitize numlayers, to minimum of 1
         newstacks =  [self.stack[i:i + n] for i in range(0, len(self.stack), n)]
         # newstacks is list of lists of Layers:

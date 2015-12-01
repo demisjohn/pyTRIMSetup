@@ -588,10 +588,10 @@ class Layer(object):
     def __str__(self):
         '''How to `print` this object.'''
         '''
-        [Name]: Ga(0.5)As(0.5) = 1500Å
+        [Name]: Ga(0.5)As(0.5) = 1500 Ang.
         '''
         pstr = ""   #"<pyTRIMSetup Layer Object>\n"
-        pstr += u"'%s': %s = %f Å" % (self.description, self.material, self.thickness)
+        pstr += u"'%s': %s = %f Ang." % (self.description, self.material, self.thickness)
         return pstr
     #end __str__
     
@@ -660,7 +660,7 @@ class Stack(object):
         pstr = ""   #"<pyTRIMSetup Stack Object>\n"
         for i,L in enumerate(self.stack):
             pstr += "Layer %i: %s\n" %(i+1, L)
-        pstr += u"Total Thickness = %f Å\n" % ( self.get_thickness() )
+        pstr += u"Total Thickness = %f Ang.\n" % ( self.get_thickness() )
         pstr += "Number of Elements: %i" %( self.get_numElements() )
         #if DEBUG(): print pstr
         return pstr

@@ -4,20 +4,9 @@
 TRIM Setup Example Using pyTRIMSetup module, by Demis D. John, Nov. 2015
 
 A Python script to generate a TRIM.IN file for running the ion-implantation simulator 
-    TRIM.exe by James Zeigler (http://srim.org).
+    TRIM.exe by James F. Zeigler (http://srim.org).
 Syntax based on CAMFR by Peter Beinstman (http://camfr.sourceforge.net)
-Nov. 2015, Demis D. John, Praevium Research Inc.
-
----------------------------------------------------------------
-
-Python/Spyder script
-Run Configuration should either:
-    Execute in Current Interpreter
-        OR
-        
-    Execute in New Interpreter 
-        AND
-    Interact with shell after completion (for plt.show() to work)
+Nov. 2015, Demis D. John
 
 
 @author: Demis John
@@ -74,7 +63,7 @@ GaAs = Material(['Ga','As'], [0.5,0.5],     5.320)
 AlGaAs = Material(['Al','Ga','As'], [98,02,100],   3.717)   # Mole-ratios will be normalized automatically
 AlAs = Material(['Al','As'],  [50,50],      3.752)
 
-# You can add custom elements that aren't yet included in AtomicInfo.py, as so:
+# You can add custom elements that aren't included in AtomicInfo.py, as so:
 X = Element('X', atnum=10, mass=9.01, surface_binding=10.2, binding=22, displacement=11)
 GaX = Material( [ 'Ga', X  ], [0.5,0.5], 7.26 )     # note the lack of quotes'' around X - it is an Element object!
 
@@ -85,11 +74,9 @@ The Stack's Layers are created from top-to-bottom, by adding materials together,
     while providing a thickness (Angstroms) for each layer.
     The underlying structures are python Lists, so you can group(), multiply*, and add+ Layers accordingly:
 '''
-# One period of AlAs & GaAs is multipled by two to repeat it twice:
-repeatingpart = 2 * (  AlGaAs(150) + GaAs(110)  )   
-# Insert this into the main Stack:  
-target = Stack(  GaAs(1500) + repeatingpart + AlAs(2500, name='n-contact')  )     # top to bottom
-# Added custom layer name to last AlAs layer.  Default name is just the compound, eg "AlAs"
+# 35-repetitions of the layer pair: 
+target = Stack(  AlAs(100) + 35*(  GaAs(110) + AlGaAs(150)  ) + GaAs(2500, name='Substrate')  )     # top to bottom
+# Added custom layer name to last GaAs layer.  Default name is just the compound, eg "GaAs"
 
 
 '''
@@ -120,26 +107,30 @@ options['PlotExtents'] = (0,0)      # Xmin, Xmax = 0,0 for automatic
 
 '''
 Generate the output TRIM.IN file with specified path/filename, passing the above options dictionary.
+
+SRIM can't handle too many layers, so automatically split up the file into multiple parts:
 '''
-target.output('ExampleOutput.in', options=options, overwrite=True)
+target.output('ExampleOutput.in', options=options, overwrite=True, split=True)
 
 '''
 The generated file can now be copied to TRIM.IN in the SRIM/TRIM directory.
-If you just run TRIM.exe, it will pick up all the simulation settings from this file.
+If you just run SRIM.exe & Choose "TRIM Calc"/"Restore Last TRIM", it will pick up all the simulation settings from this file.
+
+The split-up stack will have two files: ExampleOutput_000.in  &  ExampleOutput_001.in
+Run the simulation on _000 first.
+
+To run multiple stacks in succession, enable the TRANSMIT.TXT output (enabled by default for `split=True` files.
+Then Setup the TRIM.DAT file to input the TRANSMIT.TXT transmitted ions into the _001.in file (use SSSM.exe from "SRIM_Support" - this capability will be added to pyTRIMSetup eventually).
 '''
 
 
-'''
-Extraneous functionality:
-'''
-# Get more info on an object:
-print target
-# Get info on an Element:
-print Element('Si')
 
 # Also output the same target but with metal layers:
+Au = Material( 'Au', 1, 3.456)
+Pt = Material( 'Pt', 1, 4.567)
+Ti = Material( 'Ti', 1, 5.678)
 metal = Au(5000) + Pt(300) + Ti(100)        # A metal contact layer:
-target2 = Stack(   metal + GaAs(1500) + repeatingpart + AlAs(2500, name='n-contact')   )
+target2 = Stack(   metal + target   )       # can add/multiply target as if it's a Material Layer.
 target2.implant(    Ion('H', 10, 7)    )
 target2.output('ExampleOutput - with metal.in', options=options, overwrite=True)
 

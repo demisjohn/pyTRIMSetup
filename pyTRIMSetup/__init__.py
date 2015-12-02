@@ -667,11 +667,21 @@ class Stack(object):
     #end __str__
     
     def __add__(self,other):
+        '''Addition - return the list of layers to do math.'''
         return self.stack + list(other)
     
     def __radd__(self,other):
-        '''Reverse Add'''
+        '''Reverse Add - useful for adding to integers.
+         - return the list of layers to do math.'''
         return list(other) + self.stack
+    
+    def __mul__(self, other):
+        '''Multiply - return the list of layers to do math.'''
+        return self.stack * int(other)
+    
+    def __rmul__(self, other):
+        '''Reverse Multiply (useful for integer math) - return the list of layers to do math.'''
+        return int(other) * self.stack
     
     def get_numElements(self):
         '''Return number of unique elements contained.'''

@@ -60,7 +60,7 @@ The Stack's Layers are created from top-to-bottom, by adding materials together,
 # One period of AlGaAs & GaAs is multipled by two to repeat it twice:
 repeatingpart = 2 * (  GaAs(110) + AlGaAs(150)  )   
 # Insert this into the main Stack:  
-target = Stack(  GaAs(100) + repeatingpart + GaAs(2500, name='n-contact')  )     # top to bottom
+target = Stack(  GaAs(100) + repeatingpart + GaAs(2500, name='Substrate')  )     # top to bottom
 # Added custom layer name to last AlAs layer.  Default name is just the compound, eg "AlAs"
 
 

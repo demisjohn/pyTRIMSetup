@@ -94,5 +94,7 @@ Output the file at specified path/filename, passing the above options dictionary
 The file 'TestOutput.in' can now be copied to TRIM.IN in the SRIM/TRIM directory.
 If you run TRIM.exe, it will pick up all the simulation settings from this file.
 
+Alternatively, run SRIM.exe, and choose "TRIM Calculation" & "Restore Last TRIM Data", which will load your simulaiton into the GUI.  This is useful because then, when you choose "Run TRIM", it will subject your layers to the input checks, the most useful of which is "Merge Identical Elements".  It is recommended you do this, as otherwise TRIM can crash with a run-time error when too many elements are present (it also runs horribly slowly).
+
 A future update will automatically copy the output file to TRIM.IN & run TRIM.exe for you - optionally stitching together long simulations.
 

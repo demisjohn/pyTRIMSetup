@@ -6,7 +6,7 @@ py TRIM Setup
 A Python module for generating a TRIM.IN file for running TRIM.exe by James Zeigler (srim.org).
 SRIM/TRIM is an ion-implantation monte-carlo simulator.
 
-Nov. 2015, Demis D. John, Praevium Research Inc.
+Nov. 2015, Demis D. John
 
 ---------------------------------------------------------------
 Example:
@@ -30,9 +30,9 @@ Example:
     
     # Setup the target to bombard
     GaSb = pt.Material(['Ga','Sb'], [0.5,0.5], 3.657)   # ListOfElements, ListOfMoleFractions, Density
-    AlAs = pt.Material(['Al','Ga','As'], [0.3,0.3,0.4], 2.758)
+    AlGaAs = pt.Material(['Al','Ga','As'], [0.3,0.3,0.4], 2.758)
     AlSb = pt.Material(['Al','Sb'], [0.5,0.5], 1.97)
-    target = pt.Stack(  GaSb(1500) + AlAs(750) + GaSb(2000) + AlSb(2500) )     # Tthicknesses, from top to bottom
+    target = pt.Stack(  GaSb(1500) + AlGaAs(750) + GaSb(2000) + AlSb(2500) )     # Thicknesses, from top to bottom
 
     # Write the .IN file
     target.output('TestOutput.in', options=options, overwrite=True)
@@ -103,7 +103,8 @@ def DEBUG():
 def importElements( trimfile ):
     '''
     Use this function to import elements from a TRIM.IN file created by SRIM.exe.
-    The Elements stored in the file will be returned in a list, containing the corresponding binding energies etc.
+    The Elements stored in the file will be returned in as a list of Element objects, 
+    containing the corresponding binding energies, atomic masses etc.
     
     Parameters
     ----------
@@ -128,12 +129,8 @@ def importElements( trimfile ):
     t = open(trimfile, 'r')
     ts = t.readlines();     t.close()
     
-    '''
-    # Find first word:
-    atompat = re.compile(     r'\s*(\w*)\s*.*' ,    flags=(re.IGNORECASE) )
-    '''
     
-    # Find Atom data
+    # Find Atom data, using RegEx to store pos,name,elnum,mass of each element
     pat = re.compile(     r'\s*Atom\s*(?P<pos>\d*)\s*=\s*(?P<name>\w*)\s*=\s*(?P<elnum>\d+\.?\d*)\s*(?P<mass>\d+\.?\d*)' ,    flags=(re.IGNORECASE) )
     
     
@@ -167,6 +164,7 @@ def importElements( trimfile ):
     
     # Find Layer rows:
     layernum = re.compile(     r'\s*(\d+)\s*"(.*)"\s*(\d+\.?\d*)\s*(\d+\.?\d*).*' ,    flags=(re.IGNORECASE) )
+    # Example text from a Layer 
     #  10     "Layer 10"           10000  17.88402     0.5000
     
     i = lastline+1
@@ -254,7 +252,7 @@ def exportElements( elements, filepath, overwrite=False, warn=True ):
     fstr = '# -*- coding: utf-8 -*-' + '\n'
     fstr += '"""\nAtomicInfo\n' + '\n'
     fstr += '\tGenerated on: %s\n' % (  strftime("%Y-%m-%d %H.%M.%S")  )
-    fstr += '\tCreated by pyTRIMSetup.exportElements(), Demis D. John, 2015\n'
+    fstr += '\tCreated by pyTRIMSetup.exportElements()/importElements(), Demis D. John, 2015\n'
     fstr += '\tContains information about various atoms, as reported by TRIM.IN\n'
     fstr += '\tAll this info was originally found in the TRIM/SRIM program by James F. Zeigler (srim.org).\n'
     fstr += '"""\n\n'

@@ -3,7 +3,7 @@
 AtomicInfo
 
 	Generated on: 2015-11-27 21.28.54
-	Created by pyTRIMSetup.exportElements(), Demis D. John, 2015
+	Created by pyTRIMSetup.exportElements()/importElements(), Demis D. John, 2015
     Contains information about various atoms, as reported by TRIM.IN
     All this info was originally found in the TRIM/SRIM program by James Zeigler (srim.org).
 """
